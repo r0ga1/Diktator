@@ -18,3 +18,14 @@ See ADDITIONAL_PERMISSION.md for the limited permission for separately licensed,
 unmodified inference components; modified/incorporated GPL code still requires
 its corresponding source. Microsoft WebView2 is a separate redistributable with
 its own terms; no purported GPL source is provided for its proprietary parts.
+
+The archive inventory now includes the pinned native subdependencies, including
+KISS FFT, Eigen, OpenFST, kaldifst, kaldi-decoder, kaldi-native-fbank,
+simple-sentencepiece, json and hclust-cpp. Their original notices are also in
+licenses/Native-Inference-Notices.txt in the app. Eigen's full unmodified source
+is available in the same release source ZIP to preserve MPL source access.
+
+ONNX Runtime additionally pins its own Eigen 3.4-branch commit 1d8b82b.
+That exact full source ZIP is also included (upstream deps.txt SHA-1 verified,
+additionally pinned here with SHA-256); sherpa's Eigen 5.0.1 is not substituted
+for it. The runtime's original ThirdPartyNotices retains the MPL terms.

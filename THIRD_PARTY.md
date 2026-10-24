@@ -45,3 +45,25 @@ The offline installer is compiled with NSIS 3.08 from Debian's official packages
 
 ## Primary native source snapshots
 The release source archive also includes the exact primary sherpa-onnx 1.13.8 and ONNX Runtime 1.28.2 source snapshots under third_party/source-archives/. Revisions, URLs and hashes are recorded in third_party/native-sources.json. These snapshots are not the Microsoft WebView2 runtime and are not installed with the application. Their build systems document separately fetched dependencies; a bit-for-bit independent rebuild of the upstream DLLs has not been accepted in this project. See ADDITIONAL_PERMISSION.md for the limited permission concerning unmodified native components.
+
+## Native inference subdependencies
+
+The sherpa-onnx CPU library also compiles native dependency code; its Apache
+license alone does not replace their notices. `licenses/Native-Inference-Notices.txt`
+preserves the original root license/copyright notices for kaldi-native-fbank
+1.22.3 (Apache-2.0), KISS FFT commit febd4cae (BSD-3-Clause / Unlicense files),
+kaldi-decoder 0.3.0 and kaldifst 1.8.0 (Apache-2.0), OpenFST
+1.8.5-2026-07-09 (Apache-2.0), simple-sentencepiece 0.7 (Apache-2.0) including
+its Jakob Progsch / Václav Zeman thread pool (zlib notice), nlohmann/json 3.12.0
+(MIT), hclust-cpp 2026-02-25 (BSD-2-Clause notices, including fastcluster authors),
+and Eigen 5.0.1 (primarily MPL-2.0, plus its supplied compatible license texts).
+Their exact hash-pinned source archives, including the full unmodified Eigen
+source, accompany the same release's Silbenlot-Source.zip. MPL rights and source
+availability are not waived by the application's additional permission.
+
+This inventory follows the pinned sherpa-onnx CMake dependency graph. Its module
+path selects the top-level Eigen/OpenFST definitions. Optional source tests/tools
+retain their original notices inside the source archives; they are not all
+compiled into the DLL. The no-TTS runtime variant is used. PortAudio demo
+executables and TTS/espeak components are not shipped by Silbenlot. This is not a
+bit-identical independent reconstruction or a legal clearance warranty.

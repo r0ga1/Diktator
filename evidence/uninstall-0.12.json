@@ -1,0 +1,10 @@
+{
+  "runningCoreExitedGracefully": true,
+  "uninstallExitCode": 0,
+  "seconds": 3.287,
+  "programDirectoryRemoved": true,
+  "startMenuRemoved": true,
+  "registryAndOwnedAutostartRemoved": true,
+  "personalDataPreserved": true,
+  "personalDataSha256": "8ece88656d172aa1a221fdc3142260760c9a509ffeb9605a7ffa40f560b58cd8"
+}

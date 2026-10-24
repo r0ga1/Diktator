@@ -58,3 +58,8 @@ ist nicht als GPL-Quellcode ausgewiesen.
 Diese Bestandsaufnahme ist eine technische Herkunftsdokumentation mit den
 angegebenen Grenzen. Sie ist keine anwaltliche Prüfung und keine Zusicherung,
 dass keine Rechte Dritter bestehen oder geltend gemacht werden können.
+
+Die native Unterabhängigkeitsliste wurde zusätzlich anhand der festgelegten
+CMake-Quellen verfolgt. Originalhinweise (unter anderem KISS FFT und fastcluster)
+stehen in licenses/Native-Inference-Notices.txt; auch die passenden nativen
+Unterquellarchive einschließlich Eigen/MPL sind im Quell-Release enthalten.

@@ -1,8 +1,8 @@
 {
-  "installSeconds": 45.62,
-  "verifiedInstalledFiles": 295,
+  "installSeconds": 53.392,
+  "verifiedInstalledFiles": 296,
   "startMenuAndUninstallerRegistered": true,
-  "secondsToCoreState": 0.842,
+  "secondsToCoreState": 0.881,
   "state": {
     "version": "0.12.0",
     "arch": "x86_64",

@@ -9,7 +9,7 @@ Stand: 24.10.2026. Technische Bestandsaufnahme, keine anwaltliche Freigabe.
 - Abstraktes generiertes Audiosymbol ohne Foto, Uniform, Frisur oder Brille;
   eigene synthetisierte Signaltöne statt übernommener Formel-1-Aufnahmen.
 - GPLv3-Text, Herkunftsbericht, Drittanbieterhinweise, Modell-/Schrift-/Runtime-
-  Lizenzen, vendorte Rust-/Go-Quellen und primäre native Quellarchive.
+  Lizenzen, vendorte Rust-/Go-Quellen und primäre native Quellarchive und die festgelegten Unterabhängigkeiten samt Originalhinweisen.
 - Begrenzte zusätzliche Erlaubnisse gelten ausschließlich für eigenen Code,
   nicht für fremden GPL-Code. Microsofts Software bleibt separat lizenziert.
 - Microsoft-Runtime-Bedingungen im interaktiven Setup mit Zustimmungsschritt,
