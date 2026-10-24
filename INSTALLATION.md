@@ -1,5 +1,10 @@
 # Silbenlot 0.12.0 (Beta) — Installation unter Windows
 
+**Direkt herunterladen:** [Windows x64 · Intel/AMD](https://github.com/r0ga1/silbenlot/releases/download/v0.12.0/Silbenlot-Setup-x64.exe)
+oder [Windows ARM64 · Snapdragon](https://github.com/r0ga1/silbenlot/releases/download/v0.12.0/Silbenlot-Setup-ARM64.exe).
+Du brauchst genau **eine** der beiden EXEs. GitHubs „Code → Download ZIP“ enthält
+Entwicklerdateien und ist nicht der Installer.
+
 ## Was du brauchst
 
 **Nur eine passende Setup-EXE.** Du brauchst weder Excel noch Python, Rust, Go, CUDA, ein zusätzliches KI-Modell oder einen separaten WebView2-Installer. Parakeet v3, die Oberfläche und alle benötigten Laufzeiten sind enthalten. Installation und Diktieren benötigen keine Cloud-Spracherkennung. Plane etwa 3 GB freien Speicher ein; ungefähr 8 GB RAM sind für lokale Erkennung sinnvoll, aber kein gemessener Mindestwert.
@@ -11,7 +16,7 @@ Den Systemtyp findest du unter Windows **Einstellungen → System → Info**. Be
 
 ## Installation
 
-1. Die passende Datei mit **Setup** im Namen herunterladen und öffnen. Danach die App über das Startmenü starten.
+1. Die oben verlinkte passende Datei mit **Setup** im Namen herunterladen und öffnen.
 2. Im Assistenten **Weiter** wählen und die separat mitgelieferten Microsoft-Runtime-Bedingungen prüfen. Nur bei Zustimmung fortfahren. Eine noch laufende Silbenlot-Version wird regulär beendet; ein laufendes Diktat darf abschließen. Falls das nicht gelingt, die alte App über ihr Symbol neben der Windows-Uhr → **Programm beenden** schließen und erneut versuchen.
 3. Den vorgeschlagenen Zielordner übernehmen: `%LOCALAPPDATA%\Programs\Silbenlot`. Das ist der App-Ordner für dein Benutzerkonto und benötigt keine Administratorrechte. Im Assistenten lässt sich ein anderer beschreibbarer Ordner wählen. Der systemweite Ordner `C:\Program Files` benötigt dagegen erhöhte Rechte und ist nicht das Ziel dieses Setups.
 4. Bei Bedarf die **Desktop-Verknüpfung** auswählen und **Installieren** anklicken. Setup kopiert Modell, Oberfläche und Laufzeit und prüft die installierten Dateien. Bitte den Abschluss abwarten.
