@@ -1,0 +1,21 @@
+{
+  "installSeconds": 45.62,
+  "verifiedInstalledFiles": 295,
+  "startMenuAndUninstallerRegistered": true,
+  "secondsToCoreState": 0.842,
+  "state": {
+    "version": "0.12.0",
+    "arch": "x86_64",
+    "phase": "Idle",
+    "ready": true,
+    "modelLoaded": false,
+    "shortcut": "F9"
+  },
+  "historyEntries": 6,
+  "repairRestoresChangedFile": true,
+  "runningCoreExitedGracefully": true,
+  "existingAutostartMovedToInstalledPath": true,
+  "noAdditionalPortableCache": true,
+  "personalDataSha256": "8ece88656d172aa1a221fdc3142260760c9a509ffeb9605a7ffa40f560b58cd8",
+  "nativeDashboard": "not-tested-by-this-core-script"
+}

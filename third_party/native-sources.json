@@ -1,0 +1,20 @@
+[
+  {
+    "name": "sherpa-onnx-1.13.8",
+    "repository": "k2-fsa/sherpa-onnx",
+    "revision": "11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf",
+    "url": "https://codeload.github.com/k2-fsa/sherpa-onnx/tar.gz/11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf",
+    "file": "sherpa-onnx-1.13.8.tar.gz",
+    "bytes": 11645413,
+    "sha256": "0a8db6c55dd318f4a688faba85f7760b99a6c92e8ef8864479d418531bee1ac2"
+  },
+  {
+    "name": "onnxruntime-1.28.2",
+    "repository": "microsoft/onnxruntime",
+    "revision": "33ca9628233dc8f002435e868d4c2e9f82766ca1",
+    "url": "https://codeload.github.com/microsoft/onnxruntime/tar.gz/33ca9628233dc8f002435e868d4c2e9f82766ca1",
+    "file": "onnxruntime-1.28.2.tar.gz",
+    "bytes": 278704023,
+    "sha256": "889281e9b54b65664b1628fa28bab05b1238f388ad30c179dbe5bc15655a7532"
+  }
+]

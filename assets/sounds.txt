@@ -1,0 +1,1 @@
+Silbenlot 0.6: original synthesized soft two-note chimes. No samples or F1 recordings. Mono PCM16 44100 Hz, 240 ms. Sine + 8% second harmonic, 12 ms attack, 55 ms exponential decay, 25 ms tail fade. Start 660/880 Hz, stop 660/495 Hz. Default independent playback volume 35%. Generator: tools/generate_sounds.py; WAV assets are self contained.

@@ -1,0 +1,67 @@
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+
+running 13 tests
+test audio::cue_tests::chimes_are_distinct_quiet_and_scale_without_format_changes ... ok
+test audio::tests::phase_inversion_does_not_cancel_speech ... ok
+test audio::tests::quiet_speech_is_not_discarded ... ok
+test audio::tests::resampling_preserves_duration_and_stream_boundaries ... ok
+test audio::tests::segment_cuts_require_a_real_pause_and_keep_word_context ... ok
+test edit::tests::correction_and_unicode ... ok
+test edit::tests::replacements_are_single_pass ... ok
+test platform::microphone::tests::meter_has_bounded_memory_and_does_not_store_pcm ... ok
+test update::tests::setup_asset_names_are_fixed ... ok
+test update::tests::versions_and_origins ... ok
+test update_trust::tests::metadata_is_bound_to_publisher_version_arch_and_source ... ok
+test update_trust::tests::real_cng_signature_rejects_tampering_and_missing_signature ... ok
+test update_trust::tests::strict_signature_encoding ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test idle_and_tray_defaults_migrate_without_overwriting_later_choices ... ok
+test independent_sound_volumes_migrate_validate_and_roundtrip ... ok
+test migration_excludes_removed_features_and_preserves_history ... ok
+test output_modes_migrate_without_disabling_live_and_roundtrip ... ok
+test persistent_real_parakeet_and_live_edits ... error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+Failed to create DXGI factory.
+Parakeet warm loaded in 12.79s
+Persistent load 14.10s
+de: Alles hat ein Ende, nur die Wurst hat zwei. (0.975s warm)
+en: Ask not what your country can do for you, ask what you can do for your country. (1.131s warm)
+fr: Ne vous demandez pas ce que votre pays peut faire pour vous, demandez-vous plutôt ce que vous pouvez faire pour lui. (1.386s warm)
+ok
+test real_quiet_sentence_edges_and_long_german_context_are_retained ... Failed to create DXGI factory.
+Parakeet warm loaded in 4.33s
+Retained sentence edges: Ihr thermisches Verhalten ist nicht so gleichmäßig wie das große Höhlen auf der Erde, die oft eine ziemlich konstante Temperatur haben. Aber es stimmt damit überein, dass es sich um tiefe Löcher im Boden handelt. Said Glen Cushing vom Astrogeologie Team des United States Geological Survey, USGS, und der Northern Arizona University in Flagstaff, Arizona.
+Retained sentence edges: Many people don't think about them as dinosaurs because they have feathers and can fly.
+ok
+test real_speech_gate_rejects_noise_but_keeps_quiet_german_and_english ... Failed to create DXGI factory.
+Parakeet warm loaded in 5.16s
+speech gate silence: ""
+speech gate fan-like noise: ""
+speech gate mains hum: ""
+speech gate clicks: ""
+quiet German: Alles hat ein Ende, nur die Wurst hat zwei.
+German with surrounding noise: Alles hat ein Ende, nur die Wurst hat zwei.
+German + English: Alles hat ein Ende, nur die Wurst hat zwei. Ask not what your country can do for you, ask what you can do for your country.
+ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 59.84s
+
+
+running 6 tests
+test closing_first_start_cancels_cleanly ... ok
+test corrupted_bundle_and_traversal_rejected ... ok
+test installed_layout_rejects_incomplete_wrong_version_and_unsafe_manifest ... ok
+test installed_layout_uses_deployed_files_and_detects_corruption ... ok
+test single_exe_extracts_checks_and_repairs_cache ... ok
+test verified_warm_start_has_no_preparation_and_detects_changed_files ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+

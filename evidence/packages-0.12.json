@@ -1,0 +1,43 @@
+{
+  "version": "0.12.0",
+  "type": "offline per-user NSIS installers",
+  "nativeDashboardAcceptance": "Not accepted on native Windows hardware; ARM64 execution not tested. Wine does not replace hardware acceptance.",
+  "packages": {
+    "x64": {
+      "version": "0.12.0",
+      "architecture": "x86_64",
+      "installer": "Silbenlot-Setup-x64.exe",
+      "bytes": 853436884,
+      "sha256": "5db78a0606f0c8f867b8095f22515c7ca637efdf75d8fe9c782f275d53fb6a57",
+      "payloadFiles": 295,
+      "payloadBytes": 1460138405,
+      "defaultInstallPath": "%LOCALAPPDATA%\\Programs\\Silbenlot",
+      "scope": "current user",
+      "compiler": "NSIS",
+      "payloadManifestSha256": "07d580722524e733104ce28389312de3dc3af2a46127c3d66fb82fe523c9ca52",
+      "bootstrapMachine": "0x8664",
+      "nativePayloadMachine": "0x8664",
+      "executionLevel": "asInvoker",
+      "allPayloadHashes": "passed",
+      "runtimeExecution": "Installation, repair, core and installed model under Wine. Local signed post-exit update separately tested."
+    },
+    "ARM64": {
+      "version": "0.12.0",
+      "architecture": "aarch64",
+      "installer": "Silbenlot-Setup-ARM64.exe",
+      "bytes": 838420922,
+      "sha256": "931b2d2f3c412ac32074d9fc2fdf3fa2ee83b32c99887ee196625abe62c6a3e3",
+      "payloadFiles": 294,
+      "payloadBytes": 1442352788,
+      "defaultInstallPath": "%LOCALAPPDATA%\\Programs\\Silbenlot",
+      "scope": "current user",
+      "compiler": "NSIS",
+      "payloadManifestSha256": "d5643c974e60e9203733c052550a28cc63b82f417e9b1ba429d1f09313288b8a",
+      "bootstrapMachine": "0x14c",
+      "nativePayloadMachine": "0xaa64",
+      "executionLevel": "asInvoker",
+      "allPayloadHashes": "passed",
+      "runtimeExecution": "static verification only"
+    }
+  }
+}
