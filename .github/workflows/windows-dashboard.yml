@@ -1,0 +1,48 @@
+name: Installed Windows dashboard
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installed-dashboard:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install the published x64 beta and open its dashboard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:LOCALAPPDATA 'Programs\Diktator'
+          $data = Join-Path $env:LOCALAPPDATA 'Diktator'
+          if ((Test-Path $root) -or (Test-Path $data)) { throw 'Fresh disposable runner required' }
+          New-Item -ItemType Directory windows-dashboard | Out-Null
+          $setup = Join-Path $env:RUNNER_TEMP 'Diktator-Setup-x64.exe'
+          Invoke-WebRequest 'https://github.com/r0ga1/Diktator/releases/download/v0.13.0/Diktator-Setup-x64.exe' -OutFile $setup
+          if ((Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant() -ne '0935530dfa00a48630ab5f306f9252d9af9e41ec7aaca0b6f0ac063465de2c35') { throw 'Published installer hash mismatch' }
+          $install = Start-Process $setup -ArgumentList '/S' -PassThru
+          if (-not $install.WaitForExit(240000)) { throw 'Installer timed out' }
+          if ($install.ExitCode -ne 0) { throw "Installer exit $($install.ExitCode)" }
+          & "$root\Diktator.exe" --verify-install
+          if ($LASTEXITCODE -ne 0) { throw 'Installed bundle verification failed' }
+          $gui = Start-Process "$root\Diktator.exe" -PassThru
+          $log = Join-Path $data 'ui-start.log'
+          $ready = $false
+          try {
+            for ($i = 0; $i -lt 150; $i++) {
+              if ((Test-Path $log) -and ((Get-Content $log -Raw) -match 'READY: dashboard rendered, core connected')) { $ready = $true; break }
+              Start-Sleep -Milliseconds 500
+            }
+            if (-not $ready) { throw 'Installed WebView2 dashboard did not confirm rendered content' }
+            & "$root\Diktator.exe" --quit-existing
+            if ($LASTEXITCODE -ne 0) { throw 'Ordinary app shutdown failed' }
+            if (-not $gui.WaitForExit(30000)) { throw 'GUI host did not exit' }
+            'PASS: published installer, bundle verification, native dashboard ready and regular shutdown' | Tee-Object windows-dashboard/result.txt
+          } finally {
+            if (Test-Path $log) { Copy-Item $log windows-dashboard/ui-start.log }
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: installed-windows-dashboard
+          path: windows-dashboard/
+          retention-days: 14
