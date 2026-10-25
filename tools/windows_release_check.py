@@ -118,6 +118,20 @@ def main():
         assert core.call('history',{})['total']==0 and core.call('dashboard')['sessions']==0
         assert core.call('dictionary')==seed['dictionary']
         result['checks']['clearHistoryPreservesDictionary']=True
+        core.call('releaseModel')
+        wait(lambda:not core.call('state')['modelLoaded'],15,'Inference worker did not unload')
+        from ctypes import wintypes
+        class MEMORY(ctypes.Structure):
+            _fields_=[('cb',wintypes.DWORD),('faults',wintypes.DWORD),('peak',ctypes.c_size_t),('working',ctypes.c_size_t),('pool1',ctypes.c_size_t),('pool2',ctypes.c_size_t),('pool3',ctypes.c_size_t),('pool4',ctypes.c_size_t),('pagefile',ctypes.c_size_t),('peakfile',ctypes.c_size_t)]
+        handle=ctypes.c_void_p(int(core.p._handle))
+        def cpu_time():
+            times=[wintypes.FILETIME() for _ in range(4)]
+            assert ctypes.windll.kernel32.GetProcessTimes(handle,*[ctypes.byref(x) for x in times])
+            return sum((x.dwHighDateTime<<32)|x.dwLowDateTime for x in times[2:])/1e7
+        start_cpu=cpu_time();start_wall=time.monotonic();time.sleep(2);cpu_percent=(cpu_time()-start_cpu)/(time.monotonic()-start_wall)*100
+        mem=MEMORY();mem.cb=ctypes.sizeof(mem)
+        assert ctypes.windll.psapi.GetProcessMemoryInfo(handle,ctypes.byref(mem),mem.cb)
+        result['idle']={'modelUnloaded':True,'coreWorkingSetMiB':round(mem.working/1048576,2),'coreCpuPercentOfOneLogicalCore':round(cpu_percent,3),'measurementSeconds':2,'scope':'core with dashboard closed; Windows CI VM, not a hardware minimum'}
         core.quit()
         result['success']=True
     except Exception as e:
