@@ -1,0 +1,5 @@
+# Cargo vendor checksums and signed fixtures require byte-identical checkouts.
+# Disable platform-dependent CRLF conversion, including on Windows.
+* -text
+/vendor/** linguist-vendored
+/shell/vendor/** linguist-vendored
