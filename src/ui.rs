@@ -355,13 +355,17 @@ fn prepare(dir: &std::path::Path) -> Result<PathBuf, String> {
 /// Installer/uninstaller control: finish active dictation, then wait for the
 /// existing tray process instead of terminating it or replacing locked files.
 pub fn stop_existing() -> Result<(), String> {
+    // A user can still have both predecessors open. Finish each known host
+    // before replacing either program folder; never stop unrelated processes.
+    stop_named("SilbenlotMainWindow", "Local\\Silbenlot")?;
+    stop_named("DiktatorMainWindow", "Local\\Diktator")?;
+    Ok(())
+}
+fn stop_named(class: &str, mutex_name: &str) -> Result<(), String> {
     unsafe {
-        let mut w = FindWindowW(wide("SilbenlotMainWindow").as_ptr(), null());
+        let w = FindWindowW(wide(class).as_ptr(), null());
         if w.is_null() {
-            w = FindWindowW(wide("DiktatorMainWindow").as_ptr(), null());
-        }
-        if w.is_null() {
-            let mutex = OpenMutexW(PROCESS_SYNCHRONIZE, 0, wide("Local\\Diktator").as_ptr());
+            let mutex = OpenMutexW(PROCESS_SYNCHRONIZE, 0, wide(mutex_name).as_ptr());
             if !mutex.is_null() {
                 CloseHandle(mutex);
                 return Err(

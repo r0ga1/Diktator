@@ -162,7 +162,7 @@ pub fn apply_text(
 /// Cancel Windows/Alt's menu action and release the passed-through modifier.
 /// Runs on the control thread, never recursively inside the low-level hook.
 pub fn complete_modifier_tap(vk: u32) {
-    let extended = if matches!(vk, 92 | 165) {
+    let extended = if matches!(vk, 91 | 92 | 165) {
         KEYEVENTF_EXTENDEDKEY
     } else {
         0
