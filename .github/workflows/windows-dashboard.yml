@@ -12,6 +12,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
           $root = Join-Path $env:LOCALAPPDATA 'Programs\Diktator'
           $data = Join-Path $env:LOCALAPPDATA 'Diktator'
           if ((Test-Path $root) -or (Test-Path $data)) { throw 'Fresh disposable runner required' }
@@ -22,8 +23,8 @@ jobs:
           $install = Start-Process $setup -ArgumentList '/S' -PassThru
           if (-not $install.WaitForExit(240000)) { throw 'Installer timed out' }
           if ($install.ExitCode -ne 0) { throw "Installer exit $($install.ExitCode)" }
-          & "$root\Diktator.exe" --verify-install
-          if ($LASTEXITCODE -ne 0) { throw 'Installed bundle verification failed' }
+          $verify = Start-Process "$root\Diktator.exe" -ArgumentList '--verify-install' -PassThru
+          if ((-not $verify.WaitForExit(90000)) -or $verify.ExitCode -ne 0) { throw 'Installed bundle verification failed' }
           $gui = Start-Process "$root\Diktator.exe" -PassThru
           $log = Join-Path $data 'ui-start.log'
           $ready = $false
@@ -33,8 +34,8 @@ jobs:
               Start-Sleep -Milliseconds 500
             }
             if (-not $ready) { throw 'Installed WebView2 dashboard did not confirm rendered content' }
-            & "$root\Diktator.exe" --quit-existing
-            if ($LASTEXITCODE -ne 0) { throw 'Ordinary app shutdown failed' }
+            $quit = Start-Process "$root\Diktator.exe" -ArgumentList '--quit-existing' -PassThru
+            if ((-not $quit.WaitForExit(45000)) -or $quit.ExitCode -ne 0) { throw 'Ordinary app shutdown failed' }
             if (-not $gui.WaitForExit(30000)) { throw 'GUI host did not exit' }
             'PASS: published installer, bundle verification, native dashboard ready and regular shutdown' | Tee-Object windows-dashboard/result.txt
           } finally {
