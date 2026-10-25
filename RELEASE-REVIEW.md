@@ -39,10 +39,13 @@ englische FLEURS-Aufnahmen mit einer Vorversion. Der deutsche Satz enthält nur
 männlich markierte Stimmen und wurde zur Entwicklung verwendet. Keine blinde
 Abnahme und kein Nachweis gleicher Qualität wie ChatGPT oder Gemini.
 
-Für 0.13 werden Build, Kern-/Signaturtests, Quellpaket und Installer geprüft.
-Der zugehörige Release-Prüfbericht nennt tatsächlich ausgeführte Tests. Die neue
-Version ist als Beta gekennzeichnet: native Windows-WebView2-Abnahme auf realer
-Hardware und ARM64-Ausführung bleiben offen. Wine-Ergebnisse ersetzen das nicht.
+Für 0.13 sind Build, Kern-/Signaturtests, Quellpaket und beide Installer geprüft.
+Auf einem frischen Windows-Runner sind außerdem der automatische WinHTTP-/CNG-
+Updateablauf aus 0.12, Daten-/Ordnerübernahme, das installierte WebView2-Dashboard,
+echte deutsche Testaudio, rechte Strg/rechte Strg+F9 und Verlaufslöschung bestanden.
+Der Release-Prüfbericht und evidence/windows-0.13.json dokumentieren Ergebnisse.
+Die Version bleibt Beta: Mikrofone und Zielprogramme auf verschiedenen PCs sowie
+ARM64-Ausführung sind noch nicht vollständig abgedeckt.
 Setup/App haben keine Authenticode-Signatur; die eigene Update-Signatur ändert
 Windows SmartScreen/Reputationswarnungen nicht.
 

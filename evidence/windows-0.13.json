@@ -1,0 +1,30 @@
+{
+  "version": "0.13.0",
+  "platform": "win32",
+  "checks": {
+    "original012Installer": true,
+    "nativeWinHttpAutomaticDownloadAndCngSignature": true,
+    "signed012To013FolderAndDataMigration": true,
+    "nativeInstalledDashboardRendered": true,
+    "nativeSupervisedParakeetGermanAudio": true,
+    "nativeRightCtrlAndRightCtrlF9Capture": true,
+    "clearHistoryPreservesDictionary": true
+  },
+  "publicTestTranscript": "Ihr thermisches Verhalten ist nicht so gleichmäßig wie das große Höhlen auf der Erde, die oft eine ziemlich konstante Temperatur haben. Aber es stimmt damit überein, dass es sich um tiefe Löcher im Boden handelt. Said Glen Cushing vom Astrogeologie Team des United States Geological Survey, USGS, und der Northern Arizona University in Flagstaff, Arizona.",
+  "keyboardFocusAttempts": [
+    {
+      "foreground": 131230,
+      "thread": 9920,
+      "attached": true,
+      "accepted": true
+    }
+  ],
+  "idle": {
+    "modelUnloaded": true,
+    "coreWorkingSetMiB": 12.5,
+    "coreCpuPercentOfOneLogicalCore": 0.0,
+    "measurementSeconds": 2,
+    "scope": "core with dashboard closed; Windows CI VM, not a hardware minimum"
+  },
+  "success": true
+}

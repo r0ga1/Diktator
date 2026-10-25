@@ -26,7 +26,8 @@ Der Text erscheint direkt im Textfeld. Kürzel, Texteingabe, Aufnahmefenster und
 Schließen in den Infobereich reicht dafür nicht. Abschaltbar in **Einstellungen → App & Updates**.
 
 > **Beta:** Windows kann wegen des noch unbekannten Herausgebers warnen.
-> Die native Windows-Abnahme einschließlich des vollständigen automatischen Updateablaufs steht noch aus.
+> Installer, Dashboard und automatischer Updateablauf sind auf einem Windows-Runner geprüft.
+> ARM64 ist noch nicht auf ARM-Hardware getestet.
 > [Prüfstand ansehen](https://github.com/r0ga1/Diktator/releases/download/v0.13.0/Diktator-Pruefbericht.md).
 
 [Installation & Hilfe](https://github.com/r0ga1/Diktator/blob/main/INSTALLATION.md) ·

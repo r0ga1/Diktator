@@ -41,7 +41,7 @@ Die Setup-Datei kann nach erfolgreicher Installation gelöscht oder für eine sp
 
 ## Wenn das Dashboard leer bleibt oder ein Startfehler erscheint
 
-Ein Installer behebt die Installation und feste Dateipfade. Er ist kein automatischer Nachweis, dass ein bisheriger Rendererfehler behoben ist. Die native Dashboard-Abnahme auf echtem Windows ist weiterhin offen; der jeweilige Prüfbericht beschreibt die tatsächlich ausgeführten Tests.
+Der veröffentlichte x64-Installer wurde auf einem frischen Windows-Runner installiert. Das normal gestartete Dashboard bestätigte gerenderten Inhalt und eine funktionierende Verbindung zum App-Kern; auch der vollständige automatische Umstieg aus 0.12 wurde geprüft. Der Release-Prüfbericht nennt Tests und verbleibende Grenzen. Verschiedene Mikrofone, Zielprogramme und ARM-Hardware sind damit noch nicht vollständig abgedeckt.
 
 Diktator vollständig über das Tray-Menü beenden, das Setup zur Reparatur erneut ausführen und anschließend **Start → Diktator** öffnen. Bleibt das Problem bestehen, die genaue Fehlermeldung und die Datei `%LOCALAPPDATA%\Diktator\ui-start.log` sichern. Du kannst den Pfad mit **Win+R** öffnen. Damit lässt sich die konkrete Ursache am Windows-PC untersuchen. Der Startfehler darf nicht als fehlendes Python-/CUDA-/Modellpaket fehlgedeutet werden: diese zusätzlichen Installationen werden nicht benötigt.
 
