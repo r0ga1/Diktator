@@ -18,6 +18,7 @@ jobs:
         shell: pwsh
         env:
           DIKTATOR_RELEASE_VERSION: ${{ inputs.version }}
+          PYTHONUTF8: '1'
         run: python tools/windows_release_check.py --version $env:DIKTATOR_RELEASE_VERSION
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

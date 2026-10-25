@@ -64,19 +64,20 @@ def main():
         wait(downloaded,900,'Native WinHTTP auto-update download/signature check did not finish')
         result['checks']['nativeWinHttpAutomaticDownloadAndCngSignature']=True
         core.quit()
-        wait(lambda:(new/'.diktator-installed.json').exists() and json.loads((new/'.diktator-installed.json').read_text())['version']==args.version,300,'Renamed installation missing')
+        wait(lambda:(new/'.diktator-installed.json').exists() and json.loads((new/'.diktator-installed.json').read_text(encoding='utf-8'))['version']==args.version,300,'Renamed installation missing')
         wait(lambda:not (base/'Silbenlot/updates/pending.json').exists(),30,'Legacy update helper did not confirm installation')
-        assert json.loads((old/'.diktator-installed.json').read_text())['version']==args.version
+        assert json.loads((old/'.diktator-installed.json').read_text(encoding='utf-8'))['version']==args.version
         assert not (old/'Silbenlot.exe').exists()
         assert data.read_bytes()==original
-        migrated=json.loads((base/'Diktator/data.json').read_text())
-        assert migrated['history'][0]['text']=='Migrationsprüfung' and migrated['dictionary']==seed['dictionary']
+        migrated=json.loads((base/'Diktator/data.json').read_text(encoding='utf-8'))
+        assert migrated['history'][0]['text']=='Migrationsprüfung',repr(migrated['history'][0]['text'])
+        assert migrated['dictionary']==seed['dictionary'],repr(migrated['dictionary'])
         result['checks']['signed012To013FolderAndDataMigration']=True
         subprocess.run([str(new/'Diktator.exe'),'--verify-install'],check=True,timeout=90)
         # Start the ordinary installed app, without development paths or --stdio.
         gui=subprocess.Popen([str(new/'Diktator.exe')])
         ui_log=base/'Diktator/ui-start.log'
-        wait(lambda:ui_log.exists() and 'READY: dashboard rendered, core connected' in ui_log.read_text(errors='replace'),75,'Native WebView2 dashboard did not render')
+        wait(lambda:ui_log.exists() and 'READY: dashboard rendered, core connected' in ui_log.read_text(encoding='utf-8',errors='replace'),75,'Native WebView2 dashboard did not render')
         result['checks']['nativeInstalledDashboardRendered']=True
         subprocess.run([str(new/'Diktator.exe'),'--quit-existing'],check=True,timeout=45);gui.wait(timeout=30)
         core=Core(new/'Diktator.exe',True)
@@ -135,7 +136,7 @@ def main():
         core.quit()
         result['success']=True
     except Exception as e:
-        result['success']=False;result['error']=str(e)
+        result['success']=False;result['error']=repr(e)
         raise
     finally:
         (out/'result.json').write_text(json.dumps(result,indent=2,ensure_ascii=False),encoding='utf-8')
