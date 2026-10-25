@@ -20,7 +20,7 @@ import (
 func main() {
 	runtime.LockOSThread()
 	log.SetOutput(os.Stderr)
-	log.Print("Silbenlot UI 0.12.0: main entered")
+	log.Print("Diktator UI 0.13.0: main entered")
 	exe, e := os.Executable()
 	if e != nil {
 		log.Print(e)
@@ -38,11 +38,11 @@ func main() {
 	os.Setenv("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", fixed)
 	os.Setenv("WEBVIEW2_DEFAULT_BACKGROUND_COLOR", "FF1E1E20")
 	os.Setenv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-background-networking --disable-component-update --disable-sync --no-first-run")
-	appID, _ := syscall.UTF16PtrFromString("Silbenlot.Desktop")
+	appID, _ := syscall.UTF16PtrFromString("Diktator.Desktop")
 	syscall.NewLazyDLL("shell32.dll").NewProc("SetCurrentProcessExplicitAppUserModelID").Call(uintptr(unsafe.Pointer(appID)))
 	c := connect(os.Stdin, os.Stdout)
 	initTimer := time.AfterFunc(30*time.Second, func() { log.Print("ERROR: WebView2 controller initialization timed out"); os.Exit(46) })
-	w := webview.NewWithOptions(webview.WebViewOptions{DataPath: filepath.Join(os.Getenv("LOCALAPPDATA"), "Silbenlot", "WebView2-0.8"), AutoFocus: true, WindowOptions: webview.WindowOptions{IconId: 1, Title: "Silbenlot wird gestartet …", Width: 1140, Height: 810, Center: true, Hidden: false}, NavigationCompleted: func(ok bool, status int32, e error) {
+	w := webview.NewWithOptions(webview.WebViewOptions{DataPath: filepath.Join(os.Getenv("LOCALAPPDATA"), "Diktator", "WebView2-0.8"), AutoFocus: true, WindowOptions: webview.WindowOptions{IconId: 1, Title: "Diktator wird gestartet …", Width: 1140, Height: 810, Center: true, Hidden: false}, NavigationCompleted: func(ok bool, status int32, e error) {
 		log.Printf("Navigation completed: success=%v webError=%d error=%v", ok, status, e)
 		// OperationCanceled (14) is normal when closing during navigation.
 		if e != nil || (!ok && status != 14) {
@@ -70,7 +70,7 @@ func main() {
 		if ready.CompareAndSwap(false, true) {
 			readyTimer.Stop()
 			log.Print("READY: dashboard rendered, core connected")
-			w.Dispatch(func() { w.SetTitle("Silbenlot") })
+			w.Dispatch(func() { w.SetTitle("Diktator") })
 		}
 		return true
 	}); e != nil {

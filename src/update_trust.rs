@@ -53,13 +53,13 @@ pub fn artifact(manifest: &UpdateManifest, tag: &str, arch: &str) -> Result<Arti
         || manifest.version != tag.strip_prefix('v').unwrap_or(tag)
         || !crate::update::newer(&manifest.version, "0.0.0")
         || manifest.artifacts.len() != 2
-        || manifest.source.file != "Silbenlot-Source.zip"
+        || manifest.source.file != "Diktator-Source.zip"
         || manifest.source.arch != "source"
         || !crate::update::sha(&manifest.source.sha256)
         || manifest.source.bytes == 0
         || manifest.source.bytes > 500_000_000
     {
-        return Err("Signierte Update-Metadaten passen nicht zu Silbenlot.".into());
+        return Err("Signierte Update-Metadaten passen nicht zu Diktator.".into());
     }
     for expected_arch in ["x86_64", "aarch64"] {
         let matches = manifest
@@ -211,7 +211,7 @@ mod tests {
             artifacts: vec![a("x86_64"), a("aarch64")],
             source: Artifact {
                 arch: "source".into(),
-                file: "Silbenlot-Source.zip".into(),
+                file: "Diktator-Source.zip".into(),
                 bytes: 1,
                 sha256: "b".repeat(64),
             },

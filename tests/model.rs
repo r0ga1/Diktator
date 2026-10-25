@@ -217,3 +217,49 @@ fn real_quiet_sentence_edges_and_long_german_context_are_retained() {
         }
     }
 }
+
+#[test]
+fn shortcuts_preserve_modifier_sides_and_legacy_bindings() {
+    use diktator::store::{physical_key, shortcut_label, shortcut_matches as matches, Shortcut};
+    let right = Shortcut {
+        key: 163,
+        modifiers: 0,
+    };
+    assert!(matches(right, 163, 32));
+    assert!(!matches(right, 162, 16));
+    assert!(!matches(right, 163, 32 | 16));
+    assert_eq!(shortcut_label(right), "Strg rechts");
+    let right_space = Shortcut {
+        key: 32,
+        modifiers: 32,
+    };
+    assert!(matches(right_space, 32, 32));
+    assert!(!matches(right_space, 32, 16));
+    assert!(!matches(right_space, 32, 32 | 256));
+    let left_shift_right_ctrl = Shortcut {
+        key: 65,
+        modifiers: 32 | 256,
+    };
+    assert!(matches(left_shift_right_ctrl, 65, 32 | 256));
+    assert!(!matches(left_shift_right_ctrl, 65, 16 | 256));
+    assert!(!matches(left_shift_right_ctrl, 65, 32 | 512));
+    let legacy = Shortcut {
+        key: 32,
+        modifiers: 3,
+    };
+    assert!(matches(legacy, 32, 16 | 64));
+    assert!(matches(legacy, 32, 32 | 64));
+    assert!(!matches(legacy, 32, 32));
+    assert_eq!(physical_key(17, 0x1d, true), 163);
+    assert_eq!(physical_key(17, 0x1d, false), 162);
+    assert_eq!(physical_key(16, 0x36, false), 161);
+    assert_eq!(physical_key(18, 0x38, true), 165);
+    let settings = diktator::store::Settings {
+        shortcut: right_space,
+        ..Default::default()
+    };
+    assert!(settings.validate().is_ok());
+    let copy: diktator::store::Settings =
+        serde_json::from_str(&serde_json::to_string(&settings).unwrap()).unwrap();
+    assert_eq!(copy.shortcut, right_space);
+}

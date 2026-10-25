@@ -101,40 +101,18 @@ impl Surface {
             0.96,
         );
         self.round(
-            [9. * s, 12. * s, 36. * s, 36. * s],
-            18. * s,
-            [75, 75, 80],
-            1.,
-        );
-        self.round(
             [160. * s, 12. * s, 36. * s, 36. * s],
             18. * s,
             [235, 96, 105],
             1.,
         );
         self.round([172. * s, 24. * s, 12. * s, 12. * s], 2. * s, [255; 3], 1.);
-        // The dismiss mark uses overlapping rounded strokes, rasterized at display DPI.
-        for i in 0..14 {
-            let t = i as f32 / 13.;
-            self.round(
-                [(21. + 10. * t) * s, (24. + 10. * t) * s, 3. * s, 3. * s],
-                1.5 * s,
-                [235; 3],
-                1.,
-            );
-            self.round(
-                [(31. - 10. * t) * s, (24. + 10. * t) * s, 3. * s, 3. * s],
-                1.5 * s,
-                [235; 3],
-                1.,
-            );
-        }
         for (i, level) in levels.iter().enumerate() {
             self.bars[i] += (level - self.bars[i]) * 0.34;
             let height = (3. + self.bars[i].sqrt() * 25.).clamp(3., 29.) * s;
             self.round(
                 [
-                    (59. + i as f32 * 3.65) * s,
+                    (32. + i as f32 * 4.2) * s,
                     (60. * s - height) / 2.,
                     2.25 * s,
                     height,
@@ -245,9 +223,7 @@ unsafe extern "system" fn wnd(h: HWND, m: u32, w: WPARAM, l: LPARAM) -> LRESULT 
             };
             let x = l as u16 as i32 * 204 / width;
             if let Some(a) = APP.get() {
-                if x < 48 {
-                    let _ = a.control.send(Control::Cancel);
-                } else if x > 155 {
+                if x > 155 {
                     let _ = a.control.send(Control::Toggle);
                 }
             }
@@ -278,7 +254,7 @@ unsafe extern "system" fn wnd(h: HWND, m: u32, w: WPARAM, l: LPARAM) -> LRESULT 
 pub fn start(a: Arc<App>) {
     let _ = APP.set(a.clone());
     thread::spawn(move || unsafe {
-        let class = wide("SilbenlotMiniPegel");
+        let class = wide("DiktatorMiniPegel");
         let wc = WNDCLASSW {
             lpfnWndProc: Some(wnd),
             hInstance: main_module(),
@@ -290,7 +266,7 @@ pub fn start(a: Arc<App>) {
         let h = CreateWindowExW(
             WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
             class.as_ptr(),
-            wide("Silbenlot Pegel").as_ptr(),
+            wide("Diktator Pegel").as_ptr(),
             WS_POPUP,
             0,
             0,

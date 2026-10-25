@@ -1,8 +1,8 @@
-Silbenlot – local Windows dictation
-Original Windows project code and modifications: Silbenlot contributors, 2026.
+Diktator – local Windows dictation
+Original Windows project code and modifications: Diktator contributors, 2026.
 Application code: GNU GPL version 3 only; see LICENSE and ADDITIONAL_PERMISSION.md.
 Functional reference: VoiceInk 1.74 / Beingpax contributors (GPLv3).
-Silbenlot is independent and is not endorsed by VoiceInk, NVIDIA or Microsoft.
+Diktator is independent and is not endorsed by VoiceInk, NVIDIA or Microsoft.
 NVIDIA Parakeet TDT 0.6B v3: NVIDIA Corporation, CC BY 4.0; ONNX/quantized conversion.
 All third-party notices and licenses remain applicable. See THIRD_PARTY.md.
 No original supplied modified macOS executable or stock photograph is distributed.

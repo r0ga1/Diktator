@@ -108,7 +108,7 @@ mod tests {
         let r = vec![
             Replacement {
                 from: "Voice Inc".into(),
-                to: "Silbenlot".into(),
+                to: "Diktator".into(),
             },
             Replacement {
                 from: "cat".into(),
@@ -121,7 +121,7 @@ mod tests {
         ];
         assert_eq!(
             dictionary("VOICE INC: cat concatenate dog!", &r),
-            "Silbenlot: dog concatenate wolf!"
+            "Diktator: dog concatenate wolf!"
         );
     }
 }

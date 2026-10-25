@@ -1,6 +1,6 @@
-Silbenlot – native inference dependency notices
+Diktator – native inference dependency notices
 
-Pinned native dependency sources accompany Silbenlot-Source.zip under third_party/source-archives/.
+Pinned native dependency sources accompany Diktator-Source.zip under third_party/source-archives/.
 The following notices supplement sherpa-onnx-Apache-2.0.txt and onnxruntime-ThirdPartyNotices.txt.
 They preserve the native dependencies' own terms; the application does not relicense them.
 Eigen is primarily MPL-2.0; its unmodified full source is included in that same release source archive.

@@ -1,10 +1,10 @@
 # Herkunft und Abgrenzung
 
-Silbenlot ist das umbenannte Windows-Projekt, dessen interne Vorversion 0.11
-„Diktator“ hieß. Die öffentliche Produktbezeichnung wurde geändert, weil bereits
-eine andere Diktier-App „Diktator!“ existiert. Eine erste Websuche zu „Silbenlot“
-lieferte am 24.10.2026 keine offensichtliche gleichnamige Software. Das ist keine
-vollständige Ähnlichkeits-/Markenrecherche und keine Zusicherung freier Kennzeichen.
+Ab Version 0.13 heißt die Anwendung auf ausdrücklichen Wunsch des Nutzers wieder
+**Diktator**; Version 0.12 wurde als Silbenlot veröffentlicht. Es gibt bereits eine
+andere Diktier-App namens „Diktator!“. Der gewählte Name ist daher **nicht als
+markenrechtlich freigegeben** dokumentiert. Eine Veröffentlichung auf GitHub
+beseitigt mögliche Kennzeichenrechte nicht. Keine vollständige Markenprüfung.
 
 ## VoiceInk und bereitgestellte Dateien
 
@@ -28,18 +28,18 @@ sie vor weiterer Verteilung zugeordnet und ihre Bedingungen erfüllt werden.
 
 REA wurde als Analyse-/Entwicklungsreferenz bereitgestellt. Dessen beigefügte
 Lizenz ist MIT (Copyright 2026 morluto). Es wurden keine identischen größeren
-REA-Anwendungscode-Dateien im Silbenlot-Code gefunden; REA wird nicht als Tool
+REA-Anwendungscode-Dateien im Diktator-Code gefunden; REA wird nicht als Tool
 oder Laufzeit mitgeliefert. Künftige tatsächliche Übernahmen müssen dessen
 MIT-Copyright- und Lizenzhinweis erhalten.
 
 ## Assets
 
-Das neue App-Symbol besteht aus Audiobalken und einer abstrakten Sprechform. Es
-wurde mit image_gen aus dem vorherigen generierten Piktogramm weiterentwickelt.
-Es enthält kein Stockfoto, keine nachgezogene Foto-Umrandung, keine Frisur,
-Brille, Uniform oder beabsichtigte Darstellung einer realen Person/Filmfigur.
-Prompt und Herkunft stehen in assets/logo-prompt.txt. Keine Garantie auf
-Exklusivrechte oder vollständige Marken-/Designfreiheit.
+Ab 0.13 wird das vom Nutzer bereitgestellte Mikrofonbild `diktator_logo.png`
+verwendet. Die PNG-Datei wurde unverändert übernommen; das ICO ist eine
+Format-/Größenkonvertierung für Windows. Herkunft und Rechte an der Vorlage
+wurden nicht unabhängig verifiziert. Es wird keine Exklusivität oder vollständige
+Urheber-/Marken-/Designfreiheit zugesichert. Das frühere generierte Symbol aus
+0.12 wird nicht mehr als App-Logo eingesetzt.
 
 Die Start-/Stopptöne wurden im Projekt synthetisiert (tools/generate_sounds.py);
 es sind keine Formel-1-Aufnahmen. Die Nunito-Schrift behält ihre OFL-Lizenz.

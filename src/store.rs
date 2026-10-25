@@ -39,7 +39,6 @@ pub struct Settings {
     pub microphone: String,
     pub threads: usize,
     pub shortcut: Shortcut,
-    pub cancel_shortcut: Shortcut,
     pub show_overlay: bool,
     pub sounds: bool,
     pub start_volume: u8,
@@ -60,10 +59,6 @@ impl Default for Settings {
             microphone: String::new(),
             threads: std::thread::available_parallelism().map_or(4, |v| v.get().min(4)),
             shortcut: Shortcut::default(),
-            cancel_shortcut: Shortcut {
-                key: 27,
-                modifiers: 0,
-            },
             show_overlay: true,
             sounds: true,
             start_volume: 35,
@@ -87,15 +82,9 @@ impl Settings {
         if !(1..=32).contains(&self.threads) {
             return Err("CPU-Threads müssen zwischen 1 und 32 liegen.".into());
         }
-        for s in [self.shortcut, self.cancel_shortcut] {
-            if !(8..=254).contains(&s.key) || s.modifiers > 15 {
-                return Err("Ungültige Tastenkombination.".into());
-            }
-        }
-        if normalize_key(self.shortcut.key) == normalize_key(self.cancel_shortcut.key)
-            && self.shortcut.modifiers == self.cancel_shortcut.modifiers
-        {
-            return Err("Aufnehmen und Verwerfen benötigen unterschiedliche Kürzel.".into());
+        let s = self.shortcut;
+        if !(8..=254).contains(&s.key) || s.modifiers & !0xfff != 0 {
+            return Err("Ungültige Tastenkombination.".into());
         }
         Ok(())
     }
@@ -206,24 +195,130 @@ pub fn modifier(k: u32) -> u32 {
         _ => 0,
     }
 }
+/// Specific side bits coexist with the original generic modifier bits (1..8).
+/// Existing shortcuts keep accepting either side; newly captured shortcuts are exact.
+pub fn side_modifier(k: u32) -> u32 {
+    match k {
+        162 => 16,
+        163 => 32,
+        164 => 64,
+        165 => 128,
+        160 => 256,
+        161 => 512,
+        91 => 1024,
+        92 => 2048,
+        _ => 0,
+    }
+}
+pub fn physical_key(vk: u32, scan: u32, extended: bool) -> u32 {
+    match vk {
+        17 => {
+            if extended {
+                163
+            } else {
+                162
+            }
+        }
+        18 => {
+            if extended {
+                165
+            } else {
+                164
+            }
+        }
+        16 => {
+            if scan == 0x36 {
+                161
+            } else {
+                160
+            }
+        }
+        _ => vk,
+    }
+}
+pub fn without_key(mods: u32, key: u32) -> u32 {
+    mods & !side_modifier(key) & !modifier(key)
+}
 pub fn shortcut_matches(s: Shortcut, k: u32, mods: u32) -> bool {
-    normalize_key(s.key) == normalize_key(k) && (mods & !modifier(k)) == s.modifiers
+    let same = if matches!(s.key, 16..=18) {
+        s.key == normalize_key(k)
+    } else {
+        s.key == k
+    };
+    if !same {
+        return false;
+    }
+    let actual = without_key(mods, k);
+    for (generic, sides) in [(1, 192), (2, 48), (4, 768), (8, 3072)] {
+        let expected = s.modifiers & (generic | sides);
+        let held = actual & (generic | sides);
+        if if expected & sides != 0 {
+            held & sides != expected & sides
+        } else if expected & generic != 0 {
+            held == 0
+        } else {
+            held != 0
+        } {
+            return false;
+        }
+    }
+    true
 }
 pub fn shortcut_label(s: Shortcut) -> String {
     let mut p = Vec::new();
-    for (m, n) in [(2, "Strg"), (1, "Alt"), (4, "Umschalt"), (8, "Windows")] {
-        if s.modifiers & m != 0 {
-            p.push(n.to_string())
+    for (bit, label) in [
+        (2, "Strg"),
+        (16, "Strg links"),
+        (32, "Strg rechts"),
+        (1, "Alt"),
+        (64, "Alt links"),
+        (128, "Alt rechts / AltGr"),
+        (4, "Umschalt"),
+        (256, "Umschalt links"),
+        (512, "Umschalt rechts"),
+        (8, "Windows"),
+        (1024, "Windows links"),
+        (2048, "Windows rechts"),
+    ] {
+        if s.modifiers & bit != 0 {
+            p.push(label.to_string());
         }
     }
     p.push(match s.key {
+        8 => "Rücktaste".into(),
+        9 => "Tab".into(),
         27 => "Esc".into(),
         32 => "Leertaste".into(),
         13 => "Enter".into(),
+        20 => "Feststelltaste".into(),
+        33 => "Bild auf".into(),
+        34 => "Bild ab".into(),
+        35 => "Ende".into(),
+        36 => "Pos1".into(),
+        37 => "Pfeil links".into(),
+        38 => "Pfeil hoch".into(),
+        39 => "Pfeil rechts".into(),
+        40 => "Pfeil runter".into(),
+        44 => "Druck".into(),
+        45 => "Einfg".into(),
+        46 => "Entf".into(),
+        96..=105 => format!("Num {}", s.key - 96),
+        106 => "Num *".into(),
+        107 => "Num +".into(),
+        109 => "Num −".into(),
+        110 => "Num Dezimal".into(),
+        111 => "Num /".into(),
         16 => "Umschalt".into(),
         17 => "Strg".into(),
         18 => "Alt".into(),
-        91 | 92 => "Windows".into(),
+        160 => "Umschalt links".into(),
+        161 => "Umschalt rechts".into(),
+        162 => "Strg links".into(),
+        163 => "Strg rechts".into(),
+        164 => "Alt links".into(),
+        165 => "Alt rechts / AltGr".into(),
+        91 => "Windows links".into(),
+        92 => "Windows rechts".into(),
         112..=135 => format!("F{}", s.key - 111),
         k => char::from_u32(k).unwrap_or('?').to_string(),
     });

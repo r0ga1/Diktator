@@ -19,7 +19,18 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
     match method {
         "state" => {
             let s = a.snapshot();
-            let x = a.audio.lock().unwrap();
+            // Release the audio callback lock before reading history/settings or serializing.
+            let x = {
+                let audio = a.audio.lock().unwrap();
+                (
+                    audio.level,
+                    audio.peak,
+                    audio.native_rate,
+                    audio.channels,
+                    audio.device.clone(),
+                    audio.error.clone(),
+                )
+            };
             let settings = a.settings();
             let stamp = {
                 let d = a.data.lock().unwrap();
@@ -30,7 +41,7 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
                 )
             };
             Ok(
-                json!({"version":crate::VERSION,"arch":std::env::consts::ARCH,"phase":format!("{:?}",s.phase),"ready":s.ready,"modelLoaded":s.model_loaded,"activeOutputMode":s.output_mode,"inputPaused":a.input_paused.load(Ordering::SeqCst),"status":s.status,"error":s.error,"warning":s.warning,"text":if v["includeText"].as_bool().unwrap_or(false){s.text}else{String::new()},"update":s.update,"updateRepository":crate::update::repository(),"updateChannel":crate::update_trust::config().channel,"progress":s.progress,"recordSeconds":s.started.map_or(0.,|i|i.elapsed().as_secs_f64()),"level":x.level,"peak":x.peak,"nativeRate":x.native_rate,"channels":x.channels,"device":x.device,"inputError":x.error,"captureShortcut":a.capture_shortcut.load(Ordering::Relaxed),"shortcut":store::shortcut_label(settings.shortcut),"cancelShortcut":store::shortcut_label(settings.cancel_shortcut),"historyStamp":stamp,"settings":settings}),
+                json!({"version":crate::VERSION,"arch":std::env::consts::ARCH,"phase":format!("{:?}",s.phase),"ready":s.ready,"modelLoaded":s.model_loaded,"activeOutputMode":s.output_mode,"inputPaused":a.input_paused.load(Ordering::SeqCst),"status":s.status,"error":s.error,"warning":s.warning,"text":if v["includeText"].as_bool().unwrap_or(false){s.text}else{String::new()},"update":s.update,"updateRepository":crate::update::repository(),"updateChannel":crate::update_trust::config().channel,"progress":s.progress,"recordSeconds":s.started.map_or(0.,|i|i.elapsed().as_secs_f64()),"level":x.0,"peak":x.1,"nativeRate":x.2,"channels":x.3,"device":x.4,"inputError":x.5,"captureShortcut":a.capture_shortcut.load(Ordering::Relaxed),"shortcut":store::shortcut_label(settings.shortcut),"historyStamp":stamp,"settings":settings}),
             )
         }
         "previewSound" => {
@@ -54,7 +65,7 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
             let d = a.data.lock().unwrap();
             let m = store::metrics(&d.history);
             Ok(
-                json!({"sessions":m.sessions,"words":m.words,"seconds":m.seconds,"saved":m.saved,"wpm":m.wpm,"keystrokes":m.keystrokes,"recent":d.history.iter().take(3).collect::<Vec<_>>()}),
+                json!({"sessions":m.sessions,"words":m.words,"seconds":m.seconds,"saved":m.saved,"wpm":m.wpm,"keystrokes":m.keystrokes,"recent":d.history.iter().take(3).map(|e| json!({"id":e.id,"created":e.created,"duration":e.duration,"text":e.text.chars().take(400).collect::<String>()})).collect::<Vec<_>>()}),
             )
         }
         "history" => {
@@ -71,7 +82,7 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
                 })
                 .collect::<Vec<_>>();
             Ok(
-                json!({"total":items.len(),"entries":items.into_iter().skip(offset).take(40).collect::<Vec<_>>()}),
+                json!({"total":items.len(),"entries":items.into_iter().skip(offset).take(40).map(|e| json!({"id":e.id,"created":e.created,"name":e.name,"duration":e.duration,"text":e.text.chars().take(1600).collect::<String>(),"wordCount":e.text.split_whitespace().count()})).collect::<Vec<_>>()}),
             )
         }
         "entry" => {
@@ -116,6 +127,35 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
                 let _ = std::fs::remove_file(a.dir.join(format!("{id}.wav")));
             }
             Ok(json!(true))
+        }
+        "clearHistory" => {
+            if a.snapshot().phase != crate::app::Phase::Idle {
+                return Err("Bitte die laufende Aufnahme oder Verarbeitung zuerst beenden.".into());
+            }
+            if v["confirm"].as_bool() != Some(true) {
+                return Err("Bitte das Löschen bestätigen.".into());
+            }
+            let mut d = a.data.lock().unwrap();
+            let old = std::mem::take(&mut d.history);
+            if let Err(e) = d.save(&a.dir) {
+                d.history = old;
+                return Err(e);
+            }
+            // Only audio explicitly owned by removed history entries is removed.
+            let count = old.len();
+            drop(d);
+            a.state.lock().unwrap().text.clear();
+            let mut failed = 0;
+            for e in old {
+                if e.audio && store::safe_id(&e.id) {
+                    match std::fs::remove_file(a.dir.join(format!("{}.wav", e.id))) {
+                        Ok(()) => {}
+                        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                        Err(_) => failed += 1,
+                    }
+                }
+            }
+            Ok(json!({"deleted":count,"audioFilesNotRemoved":failed}))
         }
         "copy" => {
             platform::copy_text(owner, v.as_str().unwrap_or(""))?;
@@ -206,7 +246,6 @@ pub fn call(a: &Arc<App>, method: &str, v: Value) -> Result<Value, String> {
             a.capture_shortcut.store(
                 match v.as_str() {
                     Some("record") => 1,
-                    Some("cancel") => 2,
                     _ => 0,
                 },
                 Ordering::SeqCst,
@@ -298,7 +337,11 @@ pub fn serve(a: Arc<App>, input: impl Read, mut output: impl Write) {
             })
         })();
         let value = result.unwrap_or_else(|e| json!({"id":null,"error":e}));
-        if serde_json::to_writer(&mut output, &value).is_err()
+        let mut bytes = serde_json::to_vec(&value).unwrap_or_default();
+        if bytes.len() >= 8 * 1024 * 1024 - 1 {
+            bytes = serde_json::to_vec(&json!({"id":value["id"],"error":"Eintrag ist für die Ansicht zu groß. Bitte einen kleineren Text verwenden."})).unwrap();
+        }
+        if output.write_all(&bytes).is_err()
             || output.write_all(b"\n").is_err()
             || output.flush().is_err()
         {

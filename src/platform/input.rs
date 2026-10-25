@@ -159,12 +159,51 @@ pub fn apply_text(
     }
     Ok(true)
 }
-struct Pending {
-    key: u32,
-    used: bool,
-    cancel: bool,
+/// Cancel Windows/Alt's menu action and release the passed-through modifier.
+/// Runs on the control thread, never recursively inside the low-level hook.
+pub fn complete_modifier_tap(vk: u32) {
+    let extended = if matches!(vk, 92 | 165) {
+        KEYEVENTF_EXTENDEDKEY
+    } else {
+        0
+    };
+    let events = [
+        key(0xfc, 0, 0),
+        key(0xfc, 0, KEYEVENTF_KEYUP),
+        key(vk as u16, 0, KEYEVENTF_KEYUP | extended),
+    ];
+    unsafe {
+        SendInput(
+            events.len() as u32,
+            events.as_ptr(),
+            std::mem::size_of::<INPUT>() as i32,
+        );
+    }
 }
-thread_local! {static PENDING:std::cell::RefCell<Option<Pending>>=const{std::cell::RefCell::new(None)};static HELD:std::cell::Cell<u32>=const{std::cell::Cell::new(0)};static CAPTURE_KEY:std::cell::Cell<Option<Shortcut>>=const{std::cell::Cell::new(None)};}
+#[derive(Default)]
+struct Keys {
+    down: [u64; 4],
+    pending: Option<(u32, bool)>,
+    held: Option<u32>,
+    captured: Option<Shortcut>,
+    sides: u32,
+}
+impl Keys {
+    fn event(&mut self, key: u32, down: bool) -> bool {
+        let slot = (key / 64) as usize;
+        let bit = 1u64 << (key % 64);
+        let repeat = down && self.down[slot] & bit != 0;
+        if down {
+            self.down[slot] |= bit;
+            self.sides |= store::side_modifier(key);
+        } else {
+            self.down[slot] &= !bit;
+            self.sides &= !store::side_modifier(key);
+        }
+        repeat
+    }
+}
+thread_local! {static KEYS:std::cell::RefCell<Keys>=std::cell::RefCell::new(Keys::default());}
 unsafe extern "system" fn keyboard(code: i32, wp: WPARAM, lp: LPARAM) -> LRESULT {
     if code < 0 {
         return CallNextHookEx(null_mut(), code, wp, lp);
@@ -173,131 +212,105 @@ unsafe extern "system" fn keyboard(code: i32, wp: WPARAM, lp: LPARAM) -> LRESULT
         return CallNextHookEx(null_mut(), code, wp, lp);
     };
     let d = &*(lp as *const KBDLLHOOKSTRUCT);
-    if d.dwExtraInfo == OUR_INPUT {
+    if d.dwExtraInfo == OUR_INPUT || d.vkCode > 255 {
         return CallNextHookEx(null_mut(), code, wp, lp);
     }
-    let down = wp as u32 == WM_KEYDOWN || wp as u32 == WM_SYSKEYDOWN;
-    let up = wp as u32 == WM_KEYUP || wp as u32 == WM_SYSKEYUP;
-    let capture = a.capture_shortcut.load(Ordering::Relaxed);
-    if capture > 0 && GetForegroundWindow() as isize != a.main_window.load(Ordering::Relaxed) {
-        a.capture_shortcut.store(0, Ordering::SeqCst);
-        CAPTURE_KEY.with(|p| p.set(None));
+    let down = matches!(wp as u32, WM_KEYDOWN | WM_SYSKEYDOWN);
+    let up = matches!(wp as u32, WM_KEYUP | WM_SYSKEYUP);
+    if !down && !up {
         return CallNextHookEx(null_mut(), code, wp, lp);
     }
-    if capture > 0 {
-        if down {
-            let s = Shortcut {
-                key: store::normalize_key(d.vkCode),
-                modifiers: modifiers() & !store::modifier(d.vkCode),
-            };
-            if store::modifier(d.vkCode) == 0 {
-                a.capture_shortcut.store(0, Ordering::SeqCst);
-                let _ = a.control.send(Control::SetShortcut {
-                    cancel: capture == 2,
-                    shortcut: s,
-                });
-                CAPTURE_KEY.with(|p| p.set(None));
-            } else {
-                CAPTURE_KEY.with(|p| p.set(Some(s)));
-            }
-        }
-        if up {
-            CAPTURE_KEY.with(|p| {
-                if let Some(s) = p.take() {
+    let vk = store::physical_key(d.vkCode, d.scanCode, d.flags & LLKHF_EXTENDED != 0);
+    // Do not ask GetAsyncKeyState for the key being delivered: Windows has not
+    // updated it yet. This hook owns physical press/release state and does no I/O.
+    let consume = KEYS.with(|slot| {
+        let mut keys = slot.borrow_mut();
+        let repeat = keys.event(vk, down);
+        let capture = a.capture_shortcut.load(Ordering::Relaxed);
+        // AltGr has a synthetic left-Ctrl partner on Windows; capture AltGr
+        // itself rather than an accidental Ctrl+Alt binding.
+        let sides = if keys.sides & 128 != 0 {
+            keys.sides & !16
+        } else {
+            keys.sides
+        };
+        if capture > 0 && GetForegroundWindow() as isize != a.main_window.load(Ordering::Relaxed) {
+            a.capture_shortcut.store(0, Ordering::SeqCst);
+            keys.captured = None;
+        } else if capture > 0 {
+            if down && !repeat {
+                let shortcut = Shortcut {
+                    key: vk,
+                    modifiers: store::without_key(sides, vk),
+                };
+                if store::modifier(vk) == 0 {
                     a.capture_shortcut.store(0, Ordering::SeqCst);
-                    let _ = a.control.send(Control::SetShortcut {
-                        cancel: capture == 2,
-                        shortcut: s,
+                    let _ = a.control.send(Control::SetShortcut(shortcut));
+                    keys.captured = None;
+                } else {
+                    keys.captured = Some(shortcut);
+                }
+            }
+            if up && keys.captured.is_some_and(|s| s.key == vk) {
+                let shortcut = keys.captured.take().unwrap();
+                a.capture_shortcut.store(0, Ordering::SeqCst);
+                let _ = a.control.send(Control::SetShortcut(shortcut));
+            }
+            // Release events remain swallowed after capture ends (see held).
+            if down {
+                keys.held = Some(vk);
+            } else if keys.held == Some(vk) {
+                keys.held = None;
+            }
+            return true;
+        }
+        if keys.held == Some(vk) {
+            if up {
+                keys.held = None;
+            }
+            return true;
+        }
+        if let Some((key, used)) = keys.pending.as_mut() {
+            if *key == vk && up {
+                let trigger = !*used;
+                keys.pending = None;
+                if trigger {
+                    let _ = a.control.send(if matches!(vk, 91 | 92 | 164 | 165) {
+                        Control::ModifierTap(vk)
+                    } else {
+                        Control::Toggle
                     });
                 }
-            })
-        }
-        return 1;
-    }
-    let mut consumed = false;
-    PENDING.with(|slot| {
-        let mut pending = slot.borrow_mut();
-        if let Some(p) = pending.as_mut() {
-            if store::normalize_key(d.vkCode) == store::normalize_key(p.key) {
-                if up {
-                    if !p.used {
-                        let _ = a.control.send(if p.cancel {
-                            Control::Cancel
-                        } else {
-                            Control::Toggle
-                        });
-                        consumed = true;
-                    }
-                    *pending = None;
-                } else if down {
-                    consumed = true;
-                }
-            } else if down && !p.used {
-                p.used = true;
-                if a.insertion_active.load(Ordering::SeqCst) {
-                    a.input_paused.store(true, Ordering::SeqCst)
-                }
-                let events = [
-                    key(p.key as u16, 0, 0),
-                    key(d.vkCode as u16, d.scanCode as u16, 0),
-                ];
-                SendInput(2, events.as_ptr(), std::mem::size_of::<INPUT>() as i32);
-                consumed = true;
+                // Modifier taps pass through normally, so Ctrl+C/V and Shift
+                // never require replaying SendInput recursively inside the hook.
+                return trigger && matches!(vk, 91 | 92 | 164 | 165);
+            }
+            if down && *key != vk {
+                *used = true;
             }
         }
+        if down && !repeat {
+            let shortcut = App::decode_shortcut(a.record_key.load(Ordering::Relaxed));
+            if store::shortcut_matches(shortcut, vk, sides) {
+                if shortcut.modifiers == 0 && store::modifier(vk) != 0 {
+                    keys.pending = Some((vk, false));
+                    return false;
+                }
+                keys.held = Some(vk);
+                let _ = a.control.send(Control::Toggle);
+                return true;
+            }
+            if store::modifier(vk) == 0 && a.insertion_active.load(Ordering::SeqCst) {
+                a.input_paused.store(true, Ordering::SeqCst);
+            }
+        }
+        false
     });
-    if consumed {
-        return 1;
+    if consume {
+        1
+    } else {
+        CallNextHookEx(null_mut(), code, wp, lp)
     }
-    if HELD
-        .with(|h| h.get() != 0 && store::normalize_key(h.get()) == store::normalize_key(d.vkCode))
-    {
-        if up {
-            HELD.with(|h| h.set(0))
-        }
-        return 1;
-    }
-    if down {
-        let cancel = a.recording.load(Ordering::SeqCst)
-            && store::shortcut_matches(
-                App::decode_shortcut(a.cancel_key.load(Ordering::Relaxed)),
-                d.vkCode,
-                modifiers(),
-            );
-        let toggle = store::shortcut_matches(
-            App::decode_shortcut(a.record_key.load(Ordering::Relaxed)),
-            d.vkCode,
-            modifiers(),
-        );
-        if cancel || toggle {
-            let shortcut = App::decode_shortcut(if cancel {
-                a.cancel_key.load(Ordering::Relaxed)
-            } else {
-                a.record_key.load(Ordering::Relaxed)
-            });
-            if shortcut.modifiers == 0 && store::modifier(d.vkCode) != 0 {
-                PENDING.with(|p| {
-                    *p.borrow_mut() = Some(Pending {
-                        key: d.vkCode,
-                        used: false,
-                        cancel,
-                    })
-                });
-            } else {
-                HELD.with(|p| p.set(d.vkCode));
-                let _ = a.control.send(if cancel {
-                    Control::Cancel
-                } else {
-                    Control::Toggle
-                });
-            }
-            return 1;
-        }
-        if store::modifier(d.vkCode) == 0 && a.insertion_active.load(Ordering::SeqCst) {
-            a.input_paused.store(true, Ordering::SeqCst);
-        }
-    }
-    CallNextHookEx(null_mut(), code, wp, lp)
 }
 unsafe extern "system" fn mouse(code: i32, wp: WPARAM, lp: LPARAM) -> LRESULT {
     if code >= 0

@@ -1,7 +1,7 @@
-Silbenlot – Bedingungen für die separat mitgelieferte Microsoft-Runtime
+Diktator – Bedingungen für die separat mitgelieferte Microsoft-Runtime
 
 Die folgende Zustimmung betrifft ausschließlich die Microsoft Edge WebView2
-Runtime. Der Silbenlot-Anwendungscode bleibt unter der GPLv3 einschließlich der
+Runtime. Der Diktator-Anwendungscode bleibt unter der GPLv3 einschließlich der
 zusätzlichen WebView2-Erlaubnis verfügbar. Die GPL-Rechte an diesem Code werden
 durch diese Runtime-Bedingungen nicht eingeschränkt. Die Nutzung von GPL-Code
 allein setzt keine Annahme einer proprietären Programmlizenz voraus.

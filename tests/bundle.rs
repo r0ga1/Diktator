@@ -8,7 +8,7 @@ use std::{
 fn fixture(file_name: &str, content: &[u8]) -> (PathBuf, PathBuf) {
     let dir = std::env::temp_dir().join(format!("diktator-bundle-{}", diktator::store::new_id()));
     std::fs::create_dir(&dir).unwrap();
-    let exe = dir.join("Silbenlot.exe");
+    let exe = dir.join("Diktator.exe");
     let mut files = BTreeMap::new();
     files.insert(
         file_name.into(),
@@ -124,7 +124,7 @@ fn installed_fixture() -> (PathBuf, PathBuf, Manifest) {
     std::fs::create_dir(&dir).unwrap();
     let mut files = BTreeMap::new();
     for name in [
-        "Silbenlot.exe",
+        "Diktator.exe",
         "model/encoder.int8.onnx",
         "model/decoder.onnx",
         "model/joiner.onnx",
@@ -133,7 +133,7 @@ fn installed_fixture() -> (PathBuf, PathBuf, Manifest) {
         "runtime/sherpa-onnx-c-api.dll",
         "runtime/onnxruntime.dll",
         "runtime/onnxruntime_providers_shared.dll",
-        "ui/Silbenlot-UI.exe",
+        "ui/Diktator-UI.exe",
         "ui/WebView2Loader.dll",
         "ui/index.html",
         "webview2/msedgewebview2.exe",
@@ -155,7 +155,7 @@ fn installed_fixture() -> (PathBuf, PathBuf, Manifest) {
         arch: std::env::consts::ARCH.into(),
         files,
     };
-    let exe = dir.join("Silbenlot.exe");
+    let exe = dir.join("Diktator.exe");
     (dir, exe, m)
 }
 #[test]

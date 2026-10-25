@@ -1,13 +1,14 @@
-# Veröffentlichungsprüfung · 0.12.0
+# Veröffentlichungsprüfung · 0.13.0
 
-Stand: 24.10.2026. Technische Bestandsaufnahme, keine anwaltliche Freigabe.
+Stand: 25.10.2026. Technische Bestandsaufnahme, keine anwaltliche Freigabe.
 
 ## Umgesetzt
 
-- Eigenständiger Produktname Silbenlot statt des bereits anderweitig für eine
-  Diktier-App genutzten Namens Diktator!. Keine VoiceInk-Produktmarke im Logo.
-- Abstraktes generiertes Audiosymbol ohne Foto, Uniform, Frisur oder Brille;
-  eigene synthetisierte Signaltöne statt übernommener Formel-1-Aufnahmen.
+- Produktname auf Nutzerwunsch wieder **Diktator**. Die bekannte ähnliche
+  Diktier-App „Diktator!“ bleibt ein nicht abschließend geklärtes Namensrisiko.
+- Vom Nutzer bereitgestelltes Mikrofonlogo, unverändert als PNG übernommen und
+  für Windows ins ICO-Format konvertiert. Keine unabhängige Rechtefreigabe.
+- Eigene synthetisierte Signaltöne statt Formel-1-Aufnahmen.
 - GPLv3-Text, Herkunftsbericht, Drittanbieterhinweise, Modell-/Schrift-/Runtime-
   Lizenzen, vendorte Rust-/Go-Quellen und primäre native Quellarchive und die festgelegten Unterabhängigkeiten samt Originalhinweisen.
 - Begrenzte zusätzliche Erlaubnisse gelten ausschließlich für eigenen Code,
@@ -26,7 +27,7 @@ vorliegt. Siehe PROVENANCE.md. Eine vollständige manuelle Urheberrechts- oder
 Designprüfung wurde nicht durchgeführt. Kein fremder Code darf über eine neu
 hinzugefügte eigene Ausnahme umgelizenziert werden.
 
-Für Silbenlot wurde nur eine erste Websuche durchgeführt. Es liegt keine
+Der bekannte gleichartige Name „Diktator!“ wurde bereits dokumentiert. Es liegt keine
 vollständige Ähnlichkeitsrecherche bei DPMA/EUIPO/WIPO und keine Markenfreigabe
 vor. Eine Veröffentlichung auf GitHub ist ebenfalls eine Weitergabe, kein
 urheberrechtlich geschützter Privatbereich und kein pauschaler Haftungsausschluss.
@@ -38,7 +39,7 @@ englische FLEURS-Aufnahmen mit einer Vorversion. Der deutsche Satz enthält nur
 männlich markierte Stimmen und wurde zur Entwicklung verwendet. Keine blinde
 Abnahme und kein Nachweis gleicher Qualität wie ChatGPT oder Gemini.
 
-Für 0.12 werden Build, Kern-/Signaturtests, Quellpaket und Installer geprüft.
+Für 0.13 werden Build, Kern-/Signaturtests, Quellpaket und Installer geprüft.
 Der zugehörige Release-Prüfbericht nennt tatsächlich ausgeführte Tests. Die neue
 Version ist als Beta gekennzeichnet: native Windows-WebView2-Abnahme auf realer
 Hardware und ARM64-Ausführung bleiben offen. Wine-Ergebnisse ersetzen das nicht.

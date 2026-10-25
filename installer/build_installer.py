@@ -18,7 +18,7 @@ def main():
   if stage.exists():shutil.rmtree(stage)
   shutil.copytree(payload,stage,copy_function=os.link,ignore=lambda directory,names:['manifest.json'] if pathlib.Path(directory)==payload else [])
   core=cache/'target'/(target+'-pc-windows-gnullvm')/'release/diktator.exe'
-  shutil.copy2(core,stage/'Silbenlot.exe')
+  shutil.copy2(core,stage/'Diktator.exe')
   files={p.relative_to(stage).as_posix():{'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(stage.rglob('*')) if p.is_file()}
   marker=stage/'.diktator-installed.json';marker.write_text(json.dumps({'version':VERSION,'arch':target,'files':files},indent=2))
   # Root manifest exclusion must never exclude the runtime's nested manifest.json files.
@@ -35,11 +35,11 @@ def main():
   lines=['Delete "$INSTDIR\\'+quote(name.replace('/','\\'))+'"' for name in all_files]
   lines += ['RMDir "$INSTDIR\\'+quote(d)+'"' for d in sorted(directories,key=lambda d:(d.count('\\'),d),reverse=True)]
   (meta/'remove.nsh').write_text('\n'.join(lines)+'\n',encoding='utf-8-sig')
-  outfile=out/('Silbenlot-Setup-'+label+'.exe')
-  defines={'OUTPUT':outfile,'CORE':core,'STAGE':stage,'META':meta,'ICON':ROOT/'assets/silbenlot.ico','VERSION':VERSION,'ARCH':label,'SIZE_KB':(sum(v['bytes'] for v in files.values())+1023)//1024}
-  command=['makensis','-V3','-WX','-INPUTCHARSET','UTF8']+[f'-D{k}={compiler_path(v) if isinstance(v,pathlib.Path) else v}' for k,v in defines.items()]+[compiler_path(ROOT/'installer/Silbenlot.nsi')]
+  outfile=out/('Diktator-Setup-'+label+'.exe')
+  defines={'OUTPUT':outfile,'CORE':core,'STAGE':stage,'META':meta,'ICON':ROOT/'assets/diktator.ico','VERSION':VERSION,'ARCH':label,'SIZE_KB':(sum(v['bytes'] for v in files.values())+1023)//1024}
+  command=['makensis','-V3','-WX','-INPUTCHARSET','UTF8']+[f'-D{k}={compiler_path(v) if isinstance(v,pathlib.Path) else v}' for k,v in defines.items()]+[compiler_path(ROOT/'installer/Diktator.nsi')]
   if args.docker_container:command=['docker','exec',args.docker_container]+command
   subprocess.run(command,check=True)
-  result={'version':VERSION,'architecture':target,'installer':outfile.name,'bytes':outfile.stat().st_size,'sha256':sha(outfile),'payloadFiles':len(files),'payloadBytes':sum(v['bytes'] for v in files.values()),'defaultInstallPath':r'%LOCALAPPDATA%\Programs\Silbenlot','scope':'current user','compiler':'NSIS','payloadManifestSha256':sha(marker)}
-  (out/('Silbenlot-Setup-'+label+'.json')).write_text(json.dumps(result,indent=2));print(json.dumps(result),flush=True)
+  result={'version':VERSION,'architecture':target,'installer':outfile.name,'bytes':outfile.stat().st_size,'sha256':sha(outfile),'payloadFiles':len(files),'payloadBytes':sum(v['bytes'] for v in files.values()),'defaultInstallPath':r'%LOCALAPPDATA%\Programs\Diktator','scope':'current user','compiler':'NSIS','payloadManifestSha256':sha(marker)}
+  (out/('Diktator-Setup-'+label+'.json')).write_text(json.dumps(result,indent=2));print(json.dumps(result),flush=True)
 if __name__=='__main__':main()

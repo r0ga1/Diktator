@@ -8,7 +8,7 @@
    Source.zip mit den gebauten Quellen abgleichen. Native Windows-Abnahme und
    verbleibende Grenzen ehrlich in den Release Notes angeben.
 4. Überprüfte Quellen committen, numerischen Tag `vVERSION` setzen und pushen.
-5. [RELEASE_TEMPLATE.md](RELEASE_TEMPLATE.md) als `Silbenlot-Release-Notes.md` ins
+5. [RELEASE_TEMPLATE.md](RELEASE_TEMPLATE.md) als `Diktator-Release-Notes.md` ins
    Ausgabeverzeichnis kopieren. VERSION, Änderungsliste und Prüfstand ausfüllen;
    die beiden direkten Installer-Links müssen vor den technischen Details stehen.
    Lokal ausführen:
@@ -31,7 +31,7 @@ Ein normaler Commit/Push veröffentlicht kein binäres Update.
    Den About-Link des Repositories auf die neue Release-Seite setzen:
 
    ```sh
-   gh repo edit r0ga1/silbenlot --homepage https://github.com/r0ga1/silbenlot/releases/tag/vVERSION
+   gh repo edit r0ga1/Diktator --homepage https://github.com/r0ga1/Diktator/releases/tag/vVERSION
    ```
 
    Für Betas keinen `/releases/latest`-Link verwenden: GitHub berücksichtigt dort
@@ -57,3 +57,29 @@ Repository und Schlüssel ersetzen; keine Updates im Namen dieses Herausgebers.
 
 Die Signatur beweist die Freigabe durch den Schlüsselinhaber, keine Fehlerfreiheit
 oder unabhängige rechtliche Prüfung. GitHub-2FA und Kontoschutz bleiben notwendig.
+
+## Übergang 0.12 → 0.13
+
+0.12 vertraut weiter `r0ga1/silbenlot` und den bisherigen Asset-Namen. Das alte
+Repository darf vor diesem Übergang nicht umbenannt oder entfernt werden.
+`--legacy-bridge` erstellt zusätzlich ein eigenes signiertes Übergangsmanifest
+und Dateialiasse im Unterordner `legacy-0.13.0`, mit unverändertem öffentlichen
+Schlüssel und Microsoft-Bedingungen-Hash. Zuerst das neue Release, danach den
+Übergang veröffentlichen. Numerischen Tag in beide Repositories pushen.
+
+```sh
+python3 tools/publish_release.py --assets /path/to/dist --legacy-bridge --publish-beta
+```
+
+Das neue Setup übernimmt die persönlichen Daten einmalig, sichert gegebenenfalls
+einen älteren Diktator-Datenstand und entfernt nur unveränderte, vom alten
+Installer verzeichnete Programmdateien. Ein kleiner Versionsbeleg im bisherigen
+Programmordner bestätigt dem noch laufenden 0.12-Update-Helfer den Umstieg.
+Der bisherige persönliche Silbenlot-Datenordner bleibt unangetastet. Die neue App
+prüft ausschließlich `r0ga1/Diktator`; künftige Releases brauchen den Übergang nicht.
+
+Nach beiden Veröffentlichungen den Workflow **Windows installer and update** im
+neuen Repository starten. Er installiert die originale öffentliche 0.12-EXE auf
+einem frischen Windows-Runner und prüft deren echten automatischen WinHTTP-Download,
+CNG-Prüfung, Helfer/Installer, Ordner-/Datenübernahme, Dashboard, überwachte ASR,
+rechte Strg-Taste und Verlaufslöschung. Nur für eine wegwerfbare CI-Umgebung.

@@ -25,10 +25,10 @@ pub fn sha(s: &str) -> bool {
 }
 pub fn package_name(installed: bool, arch: &str) -> &'static str {
     match (installed, arch == "aarch64") {
-        (true, true) => "Silbenlot-Setup-ARM64.exe",
-        (true, false) => "Silbenlot-Setup-x64.exe",
-        (false, true) => "Silbenlot-ARM64.exe",
-        (false, false) => "Silbenlot-x64.exe",
+        (true, true) => "Diktator-Setup-ARM64.exe",
+        (true, false) => "Diktator-Setup-x64.exe",
+        (false, true) => "Diktator-ARM64.exe",
+        (false, false) => "Diktator-x64.exe",
     }
 }
 #[derive(Deserialize)]
@@ -106,7 +106,7 @@ mod native {
                 return Err("Unbekannter Update-Host.".into());
             }
             let session = Internet(WinHttpOpen(
-                wide(&format!("Silbenlot/{}", crate::VERSION)).as_ptr(),
+                wide(&format!("Diktator/{}", crate::VERSION)).as_ptr(),
                 WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
                 null(),
                 null(),
@@ -226,7 +226,7 @@ mod native {
                 }
             });
         let Some(release) = release else {
-            a.state.lock().unwrap().update = "Silbenlot ist aktuell.".into();
+            a.state.lock().unwrap().update = "Diktator ist aktuell.".into();
             return Ok(());
         };
         let find = |name: &str| {
@@ -369,7 +369,7 @@ mod native {
                 .starts_with(&root)
             || p.destination
                 .file_name()
-                .is_none_or(|n| n != "Silbenlot.exe")
+                .is_none_or(|n| n != "Diktator.exe")
             || !p
                 .destination
                 .parent()
@@ -428,7 +428,7 @@ mod native {
                     let status = WaitForSingleObject(parent, 60000);
                     CloseHandle(parent);
                     if status != WAIT_OBJECT_0 {
-                        return Err("Silbenlot wurde für das Update nicht beendet.".into());
+                        return Err("Diktator wurde für das Update nicht beendet.".into());
                     }
                 } else if GetLastError() != ERROR_INVALID_PARAMETER {
                     return Err("Update konnte das Beenden nicht prüfen.".into());
@@ -483,11 +483,11 @@ mod tests {
         assert!(!newer("v0.12.0", "0.12.0"));
         assert!(!newer("v0.12.0/../../bad", "0.11.0"));
         assert!(asset_url(
-            "https://github.com/r0ga1/silbenlot/releases/download/v0.13.0/Silbenlot-Setup-x64.exe",
+            "https://github.com/r0ga1/Diktator/releases/download/v0.13.0/Diktator-Setup-x64.exe",
             repository()
         ));
         assert!(!asset_url(
-            "https://github.com/attacker/project/releases/download/v0.13.0/Silbenlot-Setup-x64.exe",
+            "https://github.com/attacker/project/releases/download/v0.13.0/Diktator-Setup-x64.exe",
             repository()
         ));
         assert!(sha(&"a".repeat(64)));
@@ -495,7 +495,7 @@ mod tests {
     }
     #[test]
     fn setup_asset_names_are_fixed() {
-        assert_eq!(package_name(true, "x86_64"), "Silbenlot-Setup-x64.exe");
-        assert_eq!(package_name(true, "aarch64"), "Silbenlot-Setup-ARM64.exe");
+        assert_eq!(package_name(true, "x86_64"), "Diktator-Setup-x64.exe");
+        assert_eq!(package_name(true, "aarch64"), "Diktator-Setup-ARM64.exe");
     }
 }

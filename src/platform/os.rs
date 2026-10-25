@@ -19,7 +19,7 @@ pub fn error_box(s: &str) {
         MessageBoxW(
             null_mut(),
             wide(s).as_ptr(),
-            wide("Silbenlot").as_ptr(),
+            wide("Diktator").as_ptr(),
             MB_OK | MB_ICONERROR,
         );
     }
@@ -136,7 +136,7 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
         if code != 0 {
             return Err(format!("Autostart: Windows-Fehler {code}"));
         }
-        let name = wide("Silbenlot");
+        let name = wide("Diktator");
         let result = if enabled {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
             let value = wide(&format!("\"{}\" --autostart", exe.display()));
@@ -209,13 +209,13 @@ pub fn data_dir() -> PathBuf {
     std::env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .unwrap_or_else(std::env::temp_dir)
-        .join("Silbenlot")
+        .join("Diktator")
 }
 pub fn old_dir() -> PathBuf {
     let base = std::env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .unwrap_or_else(std::env::temp_dir);
-    let previous = base.join("Diktator");
+    let previous = base.join("Silbenlot");
     if previous.join("data.json").exists() {
         previous
     } else {

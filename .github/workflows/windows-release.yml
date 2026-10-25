@@ -1,0 +1,27 @@
+name: Windows installer and update
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published numeric version to check
+        required: true
+        default: '0.13.0'
+permissions:
+  contents: read
+jobs:
+  x64-release:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Real 0.12 update, migration, dashboard and local inference
+        shell: pwsh
+        env:
+          DIKTATOR_RELEASE_VERSION: ${{ inputs.version }}
+        run: python tools/windows_release_check.py --version $env:DIKTATOR_RELEASE_VERSION
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: windows-x64-check
+          path: windows-check/
+          retention-days: 14

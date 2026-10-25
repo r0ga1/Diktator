@@ -2,7 +2,6 @@
 use crate::{
     app::{App, Control, Phase},
     platform::{self, wide},
-    store::Store,
 };
 use std::{
     fs,
@@ -60,7 +59,7 @@ fn icon_data(h: HWND) -> NOTIFYICONDATAW {
         n.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_SHOWTIP;
         n.uCallbackMessage = TRAY;
         n.hIcon = LoadIconW(platform::main_module(), APP_ICON);
-        let text = wide("Silbenlot · Öffnen oder Rechtsklick");
+        let text = wide("Diktator · Öffnen oder Rechtsklick");
         n.szTip[..text.len()].copy_from_slice(&text);
         n
     }
@@ -79,14 +78,14 @@ fn add_icon(h: HWND) {
 fn runtime_ready(root: &std::path::Path) -> Result<(), String> {
     let runtime = root.join("webview2");
     if !runtime.join("msedgewebview2.exe").is_file() {
-        return Err("Die eingebettete Oberflächen-Laufzeit fehlt. Bitte Silbenlot erneut vollständig herunterladen.".into());
+        return Err("Die eingebettete Oberflächen-Laufzeit fehlt. Bitte Diktator erneut vollständig herunterladen.".into());
     }
     let marker = runtime.join(".diktator-appcontainer-rx");
     if !marker.exists() {
         use std::os::windows::process::CommandExt;
         let system = std::env::var_os("SystemRoot").ok_or("Windows-Systemverzeichnis fehlt")?;
         // Microsoft requires read/execute on the fixed runtime for Windows 10's renderer AppContainer.
-        // Grant only these runtime files, never the Silbenlot data or model directories.
+        // Grant only these runtime files, never the Diktator data or model directories.
         let result = Command::new(PathBuf::from(system).join("System32/icacls.exe"))
             .arg(&runtime)
             .args([
@@ -136,7 +135,7 @@ fn show_ui() {
             return;
         }
     };
-    let mut command = Command::new(h.a.root.join("ui/Silbenlot-UI.exe"));
+    let mut command = Command::new(h.a.root.join("ui/Diktator-UI.exe"));
     use std::os::windows::process::CommandExt;
     command
         .creation_flags(0x08000000)
@@ -240,7 +239,7 @@ unsafe extern "system" fn wnd(w: HWND, m: u32, wp: WPARAM, lp: LPARAM) -> LRESUL
             let event = (lp as u32) & 0xffff;
             if event == WM_CONTEXTMENU || event == WM_RBUTTONUP {
                 let menu = CreatePopupMenu();
-                AppendMenuW(menu, MF_STRING, 1, wide("Silbenlot öffnen").as_ptr());
+                AppendMenuW(menu, MF_STRING, 1, wide("Diktator öffnen").as_ptr());
                 AppendMenuW(menu, MF_SEPARATOR, 0, null());
                 AppendMenuW(menu, MF_STRING, 2, wide("Programm beenden").as_ptr());
                 let mut p: POINT = std::mem::zeroed();
@@ -300,7 +299,7 @@ fn prepare(dir: &std::path::Path) -> Result<PathBuf, String> {
                 boot = CreateWindowExW(
                     WS_EX_TOOLWINDOW,
                     wide("STATIC").as_ptr(),
-                    wide("Silbenlot wird vorbereitet …").as_ptr(),
+                    wide("Diktator wird vorbereitet …").as_ptr(),
                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
                     CW_USEDEFAULT,
                     CW_USEDEFAULT,
@@ -362,23 +361,23 @@ pub fn stop_existing() -> Result<(), String> {
             w = FindWindowW(wide("DiktatorMainWindow").as_ptr(), null());
         }
         if w.is_null() {
-            let mutex = OpenMutexW(PROCESS_SYNCHRONIZE, 0, wide("Local\\Silbenlot").as_ptr());
+            let mutex = OpenMutexW(PROCESS_SYNCHRONIZE, 0, wide("Local\\Diktator").as_ptr());
             if !mutex.is_null() {
                 CloseHandle(mutex);
                 return Err(
-                    "Silbenlot startet noch. Bitte kurz warten und erneut versuchen.".into(),
+                    "Diktator startet noch. Bitte kurz warten und erneut versuchen.".into(),
                 );
             }
             return Ok(());
         }
         if GetWindowLongPtrW(w, GWL_STYLE) as u32 & WS_CAPTION != 0 {
-            return Err("Bitte die alte Silbenlot-Version vollständig schließen.".into());
+            return Err("Bitte die alte Diktator-Version vollständig schließen.".into());
         }
         let mut pid = 0;
         GetWindowThreadProcessId(w, &mut pid);
         let process = OpenProcess(PROCESS_SYNCHRONIZE, 0, pid);
         if process.is_null() {
-            return Err("Laufende Silbenlot-Version konnte nicht angesprochen werden.".into());
+            return Err("Laufende Diktator-Version konnte nicht angesprochen werden.".into());
         }
         PostMessageW(w, QUIT, 0, 0);
         let done = WaitForSingleObject(process, 30000) == WAIT_OBJECT_0;
@@ -386,23 +385,20 @@ pub fn stop_existing() -> Result<(), String> {
         if done {
             Ok(())
         } else {
-            Err(
-                "Silbenlot schließt noch ein Diktat ab. Bitte anschließend erneut versuchen."
-                    .into(),
-            )
+            Err("Diktator schließt noch ein Diktat ab. Bitte anschließend erneut versuchen.".into())
         }
     }
 }
 pub fn run() -> Result<(), String> {
     unsafe {
         SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-        let mut mutex = CreateMutexW(null(), 0, wide("Local\\Silbenlot").as_ptr());
+        let mut mutex = CreateMutexW(null(), 0, wide("Local\\Diktator").as_ptr());
         if GetLastError() == ERROR_ALREADY_EXISTS {
-            let w = FindWindowW(wide("SilbenlotMainWindow").as_ptr(), null());
+            let w = FindWindowW(wide("DiktatorMainWindow").as_ptr(), null());
             if w.is_null() {
                 CloseHandle(mutex);
                 return Err(
-                    "Eine Silbenlot-Instanz startet bereits. Bitte den Erststart kurz abwarten."
+                    "Eine Diktator-Instanz startet bereits. Bitte den Erststart kurz abwarten."
                         .into(),
                 );
             }
@@ -425,7 +421,7 @@ pub fn run() -> Result<(), String> {
                 ShowWindow(w, SW_RESTORE);
                 SetForegroundWindow(w);
                 CloseHandle(mutex);
-                return Err("Bitte die ältere Silbenlot-Version über Programm beenden vollständig schließen und diese neue EXE erneut öffnen.".into());
+                return Err("Bitte die ältere Diktator-Version über Programm beenden vollständig schließen und diese neue EXE erneut öffnen.".into());
             }
             // 0.5 has the same hidden tray host/QUIT protocol, but no version query.
             // Finish active dictation gracefully; never forcibly terminate the old process.
@@ -435,7 +431,7 @@ pub fn run() -> Result<(), String> {
             CloseHandle(mutex);
             if process.is_null() {
                 return Err(
-                    "Die ältere Silbenlot-Version muss zuerst über ihr Tray-Menü beendet werden."
+                    "Die ältere Diktator-Version muss zuerst über ihr Tray-Menü beendet werden."
                         .into(),
                 );
             }
@@ -445,9 +441,9 @@ pub fn run() -> Result<(), String> {
             if !completed {
                 return Err("Die ältere Version schließt noch ein Diktat ab. Bitte anschließend diese EXE erneut öffnen.".into());
             }
-            mutex = CreateMutexW(null(), 0, wide("Local\\Silbenlot").as_ptr());
+            mutex = CreateMutexW(null(), 0, wide("Local\\Diktator").as_ptr());
             if GetLastError() == ERROR_ALREADY_EXISTS {
-                let current = FindWindowW(wide("SilbenlotMainWindow").as_ptr(), null());
+                let current = FindWindowW(wide("DiktatorMainWindow").as_ptr(), null());
                 if !current.is_null() {
                     PostMessageW(current, SHOW, 0, 0);
                 }
@@ -455,19 +451,15 @@ pub fn run() -> Result<(), String> {
                 return Ok(());
             }
         }
-        let old = OpenMutexW(
-            PROCESS_SYNCHRONIZE,
-            0,
-            wide("Local\\VoiceInkLocal").as_ptr(),
-        );
+        let old = OpenMutexW(PROCESS_SYNCHRONIZE, 0, wide("Local\\Silbenlot").as_ptr());
         if !old.is_null() {
             CloseHandle(old);
-            return Err("Die bisherige VoiceInk-App läuft noch. Bitte diese schließen und Silbenlot erneut starten, damit nicht zwei Apps dieselben Kürzel verwenden.".into());
+            return Err("Die bisherige VoiceInk-App läuft noch. Bitte diese schließen und Diktator erneut starten, damit nicht zwei Apps dieselben Kürzel verwenden.".into());
         }
         let dir = platform::data_dir();
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let root = prepare(&dir)?;
-        let mut data = Store::load(&dir, Some(&platform::old_dir()))?;
+        let mut data = crate::migration::load_data(&dir, &platform::old_dir())?;
         if !data.settings.tray_setup {
             data.settings.close_to_background = true;
             data.settings.tray_setup = true;
@@ -482,7 +474,7 @@ pub fn run() -> Result<(), String> {
         if let Some(e) = autostart_error {
             a.fail(format!("Autostart konnte nicht aktualisiert werden: {e}"));
         }
-        let class = wide("SilbenlotMainWindow");
+        let class = wide("DiktatorMainWindow");
         let wc = WNDCLASSW {
             lpfnWndProc: Some(wnd),
             hInstance: platform::main_module(),
@@ -494,7 +486,7 @@ pub fn run() -> Result<(), String> {
         let w = CreateWindowExW(
             WS_EX_TOOLWINDOW,
             class.as_ptr(),
-            wide("Silbenlot").as_ptr(),
+            wide("Diktator").as_ptr(),
             WS_POPUP,
             0,
             0,

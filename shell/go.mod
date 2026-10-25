@@ -1,4 +1,4 @@
-module silbenlotui
+module diktatorui
 
 go 1.26.1
 

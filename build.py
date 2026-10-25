@@ -47,7 +47,7 @@ def verify_arch(folder,machine):
    if head[:2]!=b'MZ' or pe[:4]!=b'PE\0\0' or int.from_bytes(pe[4:6],'little')!=machine:raise RuntimeError('Architecture mismatch: '+str(f))
 def resource(cache,compiler,arch):
  p=cache/('resource-'+arch);p.mkdir(parents=True,exist_ok=True);version=VERSION.replace('.',',')+',0'
- manifest='''<?xml version="1.0" encoding="UTF-8" standalone="yes"?><assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"><assemblyIdentity version="VERSION.0" processorArchitecture="*" name="Silbenlot" type="win32"/><description>Silbenlot</description><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*"/></dependentAssembly></dependency><trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges><requestedExecutionLevel level="asInvoker" uiAccess="false"/></requestedPrivileges></security></trustInfo><application xmlns="urn:schemas-microsoft-com:asm.v3"><windowsSettings><dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2,PerMonitor</dpiAwareness><longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware></windowsSettings></application><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/></application></compatibility></assembly>'''.replace('VERSION',VERSION)
+ manifest='''<?xml version="1.0" encoding="UTF-8" standalone="yes"?><assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"><assemblyIdentity version="VERSION.0" processorArchitecture="*" name="Diktator" type="win32"/><description>Diktator</description><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*"/></dependentAssembly></dependency><trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges><requestedExecutionLevel level="asInvoker" uiAccess="false"/></requestedPrivileges></security></trustInfo><application xmlns="urn:schemas-microsoft-com:asm.v3"><windowsSettings><dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2,PerMonitor</dpiAwareness><longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware></windowsSettings></application><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/></application></compatibility></assembly>'''.replace('VERSION',VERSION)
  (p/'app.manifest').write_text(manifest)
  rc='''1 ICON "ICON"
 1 24 "app.manifest"
@@ -61,12 +61,12 @@ FILETYPE 0x1L
 BEGIN
  BLOCK "StringFileInfo" BEGIN
   BLOCK "040904b0" BEGIN
-   VALUE "CompanyName", "Silbenlot contributors\\0"
-   VALUE "FileDescription", "Silbenlot - lokales Diktat\\0"
+   VALUE "CompanyName", "Diktator contributors\\0"
+   VALUE "FileDescription", "Diktator - lokales Diktat\\0"
    VALUE "FileVersion", "VERSIONTEXT\\0"
-   VALUE "InternalName", "Silbenlot\\0"
-   VALUE "OriginalFilename", "Silbenlot.exe\\0"
-   VALUE "ProductName", "Silbenlot\\0"
+   VALUE "InternalName", "Diktator\\0"
+   VALUE "OriginalFilename", "Diktator.exe\\0"
+   VALUE "ProductName", "Diktator\\0"
    VALUE "ProductVersion", "VERSIONTEXT\\0"
    VALUE "LegalCopyright", "GPL-3.0; third-party notices included\\0"
   END
@@ -75,17 +75,17 @@ BEGIN
   VALUE "Translation", 0x409, 1200
  END
 END
-'''.replace('ICON"','ICON"').replace('"ICON"','"'+str(ROOT/'assets/silbenlot.ico')+'"').replace('VERSIONNUM',version).replace('VERSIONTEXT',VERSION)
- (p/'app.rc').write_text(rc);key=hashlib.sha256((rc+manifest).encode()+(ROOT/'assets/silbenlot.ico').read_bytes()).hexdigest()[:16];obj=p/('app-'+key+'.o');subprocess.run([str(compiler),'-i',str(p/'app.rc'),'-o',str(obj),'-O','coff'],cwd=p,check=True);return obj
+'''.replace('ICON"','ICON"').replace('"ICON"','"'+str(ROOT/'assets/diktator.ico')+'"').replace('VERSIONNUM',version).replace('VERSIONTEXT',VERSION)
+ (p/'app.rc').write_text(rc);key=hashlib.sha256((rc+manifest).encode()+(ROOT/'assets/diktator.ico').read_bytes()).hexdigest()[:16];obj=p/('app-'+key+'.o');subprocess.run([str(compiler),'-i',str(p/'app.rc'),'-o',str(obj),'-O','coff'],cwd=p,check=True);return obj
 
 def source_zip(out):
- p=out/'Silbenlot-Source.zip'
+ p=out/'Diktator-Source.zip'
  with zipfile.ZipFile(p,'w',zipfile.ZIP_DEFLATED,compresslevel=6,strict_timestamps=False) as z:
   for f in sorted(ROOT.rglob('*')):
    rel=f.relative_to(ROOT)
    # Vendored packages can legitimately contain source folders named target/.
    # Keep every crate file so Cargo's package checksums also work after unzip.
-   if f.is_file() and (rel.parts[0]=='vendor' or not any(x in ('target','dist','.git','__pycache__') for x in rel.parts)):z.write(f,'Silbenlot-Source/'+rel.as_posix())
+   if f.is_file() and (rel.parts[0]=='vendor' or not any(x in ('target','dist','.git','__pycache__') for x in rel.parts)):z.write(f,'Diktator-Source/'+rel.as_posix())
  return p
 
 def main():
@@ -118,7 +118,7 @@ def main():
   subprocess.run([go,'build','-mod=vendor','-trimpath','-ldflags=-s -w -H=windowsgui -buildid=','-o',str(shell),'.'],cwd=ROOT/'shell',env=goenv,check=True)
   if stage.exists():shutil.rmtree(stage)
   shutil.copytree(models,stage/'model')
-  (stage/'ui').mkdir();shutil.copy2(shell,stage/'ui/Silbenlot-UI.exe')
+  (stage/'ui').mkdir();shutil.copy2(shell,stage/'ui/Diktator-UI.exe')
   with zipfile.ZipFile(obtain('webview2-sdk.nupkg',cache,None)) as sdk:
    (stage/'ui/WebView2Loader.dll').write_bytes(sdk.read('build/native/'+arch+'/WebView2Loader.dll'))
   import base64
@@ -149,12 +149,12 @@ def main():
   with zipfile.ZipFile(payload,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
    for p in sorted(stage.rglob('*')):
     if p.is_file():z.write(p,p.relative_to(stage).as_posix())
-  exe=out/('Silbenlot-'+label+'.exe')
+  exe=out/('Diktator-'+label+'.exe')
   with exe.open('wb') as dst:
    for f in [app,payload]:
     with f.open('rb') as src:shutil.copyfileobj(src,dst)
    dst.write(MAGIC);dst.write(struct.pack('<Q',payload.stat().st_size));dst.write(bytes.fromhex(sha(payload)))
   print(exe.name,f'{exe.stat().st_size/1e6:.1f} MB',flush=True)
  source_zip(out)
- (out/'SHA256SUMS.txt').write_text(''.join(sha(p)+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file() and (p.name.startswith('Silbenlot-') and p.suffix in ('.exe','.zip'))))
+ (out/'SHA256SUMS.txt').write_text(''.join(sha(p)+'  '+p.name+'\n' for p in sorted(out.iterdir()) if p.is_file() and (p.name.startswith('Diktator-') and p.suffix in ('.exe','.zip'))))
 if __name__=='__main__':main()

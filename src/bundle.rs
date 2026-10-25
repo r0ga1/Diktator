@@ -162,7 +162,7 @@ impl Bundle {
             .map_err(|e| format!("Installationsliste beschädigt: {e}"))?;
         validate_manifest(&m)?;
         for required in [
-            "Silbenlot.exe",
+            "Diktator.exe",
             "model/encoder.int8.onnx",
             "model/decoder.onnx",
             "model/joiner.onnx",
@@ -171,7 +171,7 @@ impl Bundle {
             "runtime/sherpa-onnx-c-api.dll",
             "runtime/onnxruntime.dll",
             "runtime/onnxruntime_providers_shared.dll",
-            "ui/Silbenlot-UI.exe",
+            "ui/Diktator-UI.exe",
             "ui/WebView2Loader.dll",
             "ui/index.html",
             "webview2/msedgewebview2.exe",
@@ -186,7 +186,7 @@ impl Bundle {
         let hash = format!("{:x}", Sha256::digest(json.as_bytes()));
         if !unchanged(root, exe, &hash, &json, &m) {
             if !verified(root, &m) {
-                return Err("Installationsdateien fehlen oder sind beschädigt. Bitte das Silbenlot-Setup erneut ausführen.".into());
+                return Err("Installationsdateien fehlen oder sind beschädigt. Bitte das Diktator-Setup erneut ausführen.".into());
             }
             remember(root, exe, &hash, &json, &m);
         }
@@ -210,7 +210,7 @@ impl Bundle {
         let mut tail = [0u8; 56];
         f.read_exact(&mut tail).map_err(|e| e.to_string())?;
         if &tail[..16] != MAGIC {
-            return Err("Diese EXE enthält kein Silbenlot-Modellpaket. Die vollständige portable EXE verwenden.".into());
+            return Err("Diese EXE enthält kein Diktator-Modellpaket. Die vollständige portable EXE verwenden.".into());
         }
         let len = u64::from_le_bytes(tail[16..24].try_into().unwrap());
         if len > size - FOOTER || len > 1_500_000_000 {

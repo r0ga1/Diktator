@@ -1,5 +1,4 @@
 use crate::{
-    asr::Recognizer,
     audio::{self, RATE},
     edit,
     platform::{
@@ -8,6 +7,7 @@ use crate::{
         Target,
     },
     store::{self, Entry, OutputMode, Settings, Shortcut, Store},
+    worker::Worker as Recognizer,
 };
 use std::{
     collections::VecDeque,
@@ -69,9 +69,10 @@ impl Default for State {
 }
 pub enum Control {
     Toggle,
+    ModifierTap(u32),
     Test,
     Cancel,
-    SetShortcut { cancel: bool, shortcut: Shortcut },
+    SetShortcut(Shortcut),
     Settings(Settings),
     Quit,
 }
@@ -88,7 +89,6 @@ pub struct App {
     pub insertion_active: AtomicBool,
     pub input_paused: AtomicBool,
     pub record_key: AtomicU64,
-    pub cancel_key: AtomicU64,
     pub capture_shortcut: AtomicU32,
     pub main_window: AtomicIsize,
     pub native_window: AtomicIsize,
@@ -106,7 +106,6 @@ impl App {
         let (tx, rx) = mpsc::channel();
         let app = Arc::new(Self {
             record_key: AtomicU64::new(Self::encode_shortcut(data.settings.shortcut)),
-            cancel_key: AtomicU64::new(Self::encode_shortcut(data.settings.cancel_shortcut)),
             data: Mutex::new(data),
             state: Mutex::new(State::default()),
             audio: Arc::new(Mutex::new(AudioData::default())),
@@ -180,12 +179,9 @@ impl App {
             }
             return Err(e);
         }
+        drop(data);
         self.record_key
             .store(Self::encode_shortcut(settings.shortcut), Ordering::SeqCst);
-        self.cancel_key.store(
-            Self::encode_shortcut(settings.cancel_shortcut),
-            Ordering::SeqCst,
-        );
         if settings.threads != old.threads {
             self.reload.store(true, Ordering::SeqCst)
         }
@@ -211,10 +207,16 @@ impl App {
         platform::overlay::refresh(self);
     }
     pub fn queue_file(&self, path: PathBuf) -> Result<(), String> {
-        if self.snapshot().phase != Phase::Idle {
-            return Err("Bitte das aktuelle Diktat zuerst beenden.".into());
+        let state = self.snapshot();
+        if state.phase != Phase::Idle || !state.ready {
+            return Err("Bitte die aktuelle Verarbeitung zuerst beenden.".into());
         }
-        self.imports.lock().unwrap().push_back(path);
+        let mut queue = self.imports.lock().unwrap();
+        if !queue.is_empty() {
+            return Err("Eine Audiodatei wartet bereits auf die Erkennung.".into());
+        }
+        queue.push_back(path);
+        drop(queue);
         self.wake();
         Ok(())
     }
@@ -230,6 +232,13 @@ impl App {
                 Ok(v) => Some(v),
                 Err(mpsc::RecvTimeoutError::Timeout) => None,
                 Err(_) => break,
+            };
+            let command = match command {
+                Some(Control::ModifierTap(vk)) => {
+                    platform::input::complete_modifier_tap(vk);
+                    Some(Control::Toggle)
+                }
+                other => other,
             };
             let has_command = command.is_some();
             let phase = self.snapshot().phase;
@@ -263,13 +272,9 @@ impl App {
                         self.fail(e)
                     }
                 }
-                Some(Control::SetShortcut { cancel, shortcut }) => {
+                Some(Control::SetShortcut(shortcut)) => {
                     let mut settings = self.settings();
-                    if cancel {
-                        settings.cancel_shortcut = shortcut
-                    } else {
-                        settings.shortcut = shortcut
-                    }
+                    settings.shortcut = shortcut;
                     match self.save_settings(settings) {
                         Ok(_) => {
                             self.state.lock().unwrap().status =
@@ -380,6 +385,7 @@ impl App {
                     }
                 }
                 None => {}
+                Some(Control::ModifierTap(_)) => unreachable!(),
             }
             if has_command {
                 self.wake();
@@ -412,18 +418,22 @@ impl App {
         self.recording.store(false, Ordering::SeqCst);
     }
     fn load_model(&self) -> Result<Recognizer, String> {
-        self.state.lock().unwrap().ready = false;
-        let r = Recognizer::load(
-            &self.root.join("runtime"),
-            &self.root.join("model"),
-            self.settings().threads,
-        )?;
+        {
+            let mut s = self.state.lock().unwrap();
+            s.ready = false;
+            s.status = "Parakeet wird geladen …".into();
+        }
+        let r = Recognizer::load(&self.root, self.settings().threads)?;
         let mut s = self.state.lock().unwrap();
         s.ready = true;
         s.model_loaded = true;
-        if s.phase == Phase::Idle {
-            s.status = "Bereit · Textfeld anklicken und Aufnahme-Kürzel drücken".into();
+        s.status = match s.phase {
+            Phase::Idle => "Bereit · Textfeld anklicken und Aufnahme-Kürzel drücken",
+            Phase::Recording => "Diktat läuft",
+            Phase::Finalizing => "Diktat wird abgeschlossen …",
+            _ => "Audio wird verarbeitet …",
         }
+        .into();
         Ok(r)
     }
     fn decode_loop(self: Arc<Self>) {
@@ -479,7 +489,7 @@ impl App {
                 {
                     let pcm = {
                         let a = self.audio.lock().unwrap();
-                        a.pcm[segment_start..].to_vec()
+                        a.pcm[segment_start..(segment_start + 16000 * 24).min(a.pcm.len())].to_vec()
                     };
                     let energy = audio::rms(&pcm);
                     if energy > 0.00008 {
@@ -589,6 +599,13 @@ impl App {
                         self.fail(e)
                     }
                     self.state.lock().unwrap().phase = Phase::Idle;
+                }
+            }
+            if model.as_ref().is_some_and(|m| m.failed()) {
+                model.take();
+                self.state.lock().unwrap().model_loaded = false;
+                if self.recording.load(Ordering::SeqCst) {
+                    let _ = self.control.send(Control::Cancel);
                 }
             }
             let phase = self.snapshot().phase;

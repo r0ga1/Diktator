@@ -1,0 +1,28 @@
+name: Windows checks
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-tests:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Compile deliberately stalled worker fixture
+        shell: pwsh
+        run: |
+          $code = 'using System; using System.Threading; class Worker { static void Main() { Console.WriteLine("{\"text\":\"\",\"error\":\"\"}"); Console.Out.Flush(); Thread.Sleep(Timeout.Infinite); } }'
+          $fixture = Join-Path $env:RUNNER_TEMP 'stalled-worker.exe'
+          $source = Join-Path $env:RUNNER_TEMP 'stalled-worker.cs'
+          Set-Content $source $code
+          & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /out:$fixture $source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "DIKTATOR_TEST_HUNG_WORKER=$fixture" >> $env:GITHUB_ENV
+      - name: Native Windows Rust tests
+        run: cargo test --locked --offline -- --test-threads=1
+      - name: Go bridge tests
+        working-directory: shell
+        run: go test -mod=vendor -race -timeout 40s ./...

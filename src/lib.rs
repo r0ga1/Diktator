@@ -15,3 +15,8 @@ pub mod update;
 pub mod update_trust;
 mod vad;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg(windows)]
+pub mod worker;
+
+pub mod migration;

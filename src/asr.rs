@@ -147,35 +147,43 @@ impl Recognizer {
         pcm: &[f32],
         cancel: &std::sync::atomic::AtomicBool,
     ) -> Result<String, String> {
-        let mut texts = Vec::new();
-        let mut start = 0;
-        while start < pcm.len() {
-            if cancel.load(std::sync::atomic::Ordering::Relaxed) {
-                return Err("Abgebrochen".into());
-            }
-            let preferred = (start + 16000 * 24).min(pcm.len());
-            let pause = (preferred < pcm.len())
-                .then(|| crate::audio::speech_pause(&pcm[start..preferred], 16000 * 12))
-                .flatten();
-            let mut end = pause.map_or((start + 16000 * 85).min(pcm.len()), |at| start + at);
-            if pause.is_none() && end < pcm.len() {
-                let low = (end - 16000 * 5).max(start);
-                let step = 320;
-                let mut best = f32::MAX;
-                for pos in (low..end).step_by(step) {
-                    let e = crate::audio::rms(&pcm[pos..(pos + step).min(pcm.len())]);
-                    if e < best {
-                        best = e;
-                        end = pos + step
-                    }
-                }
-            }
-            texts.push(self.recognize(&pcm[start..end])?);
-            start = end;
-        }
-        Ok(crate::edit::join(&texts))
+        recognize_chunks(pcm, cancel, |chunk| self.recognize(chunk))
     }
 }
+pub fn recognize_chunks(
+    pcm: &[f32],
+    cancel: &std::sync::atomic::AtomicBool,
+    mut recognize: impl FnMut(&[f32]) -> Result<String, String>,
+) -> Result<String, String> {
+    let mut texts = Vec::new();
+    let mut start = 0;
+    while start < pcm.len() {
+        if cancel.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err("Abgebrochen".into());
+        }
+        let preferred = (start + 16000 * 24).min(pcm.len());
+        let pause = (preferred < pcm.len())
+            .then(|| crate::audio::speech_pause(&pcm[start..preferred], 16000 * 12))
+            .flatten();
+        let mut end = pause.map_or((start + 16000 * 85).min(pcm.len()), |at| start + at);
+        if pause.is_none() && end < pcm.len() {
+            let low = (end - 16000 * 5).max(start);
+            let step = 320;
+            let mut best = f32::MAX;
+            for pos in (low..end).step_by(step) {
+                let e = crate::audio::rms(&pcm[pos..(pos + step).min(pcm.len())]);
+                if e < best {
+                    best = e;
+                    end = pos + step
+                }
+            }
+        }
+        texts.push(recognize(&pcm[start..end])?);
+        start = end;
+    }
+    Ok(crate::edit::join(&texts))
+}
+
 impl Drop for Recognizer {
     fn drop(&mut self) {
         unsafe { (self.destroy)(self.handle) }

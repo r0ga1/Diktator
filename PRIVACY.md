@@ -1,13 +1,13 @@
 # Datenschutz und Netzwerkverbindungen
 
-Silbenlot führt Spracherkennung mit Parakeet v3 lokal auf dem Windows-PC aus.
+Diktator führt Spracherkennung mit Parakeet v3 lokal auf dem Windows-PC aus.
 Diktate werden nicht an einen Cloud-Spracherkennungsdienst oder an die
 WebView2-Oberfläche übergeben. Keine Anmeldung, Werbung oder eigene Telemetrie.
 
 ## Lokale Daten
 
 Einstellungen, Wörterbuch und Verlauf liegen unverschlüsselt unter
-`%LOCALAPPDATA%\Silbenlot\data.json`. Auf Wunsch werden dort auch WAV-Aufnahmen
+`%LOCALAPPDATA%\Diktator\data.json`. Auf Wunsch werden dort auch WAV-Aufnahmen
 aufbewahrt; standardmäßig ist das aus. Mikrofontests erzeugen keine Historie.
 Andere Prozesse mit denselben Benutzerrechten können auf diese Dateien zugreifen.
 Die Deinstallation entfernt Programmdateien; persönliche Daten bleiben erhalten.
@@ -18,7 +18,7 @@ kopiert werden. Das Original wird nicht gelöscht.
 
 Bei frischen Einstellungen sind Updates eingeschaltet. Die App fragt frühestens
 zehn Sekunden nach dem Start und dann ungefähr alle sechs Stunden den festen
-GitHub-Kanal `r0ga1/silbenlot` ab. Während eines Diktats wird eine automatische
+GitHub-Kanal `r0ga1/Diktator` ab. Während eines Diktats wird eine automatische
 Prüfung zurückgestellt. Dabei erfährt GitHub übliche Verbindungsdaten wie IP-Adresse
 und den App-User-Agent, jedoch keine Diktate, Audiodateien oder Wörterbücher.
 Update-Metadaten und Pakete werden von GitHub/GitHub-CDNs heruntergeladen;
@@ -43,3 +43,11 @@ https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/data-privacy
 
 Die Behauptung „Spracherkennung lokal“ gilt für die ASR-Verarbeitung. Sie ist
 keine Zusicherung vollständiger Netzwerkfreiheit des Gesamtprogramms.
+
+## Umstieg von Silbenlot
+
+Beim ersten Umstieg übernimmt Diktator einen neueren Silbenlot-Datenstand einmalig.
+Ein vorhandener älterer Diktator-Datenstand wird zuvor im Diktator-Datenordner unter
+`vor-umbenennung-*` gesichert. Der alte Silbenlot-Datenordner bleibt erhalten.
+„Verlauf löschen“ entfernt nur den aktuellen Verlauf samt zugeordnetem Audio;
+frühere Datenordner und Migrationssicherungen werden nicht automatisch gelöscht.
