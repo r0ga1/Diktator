@@ -98,8 +98,41 @@ def main():
         user.CreateWindowExW.argtypes=[ctypes.c_uint32,ctypes.c_wchar_p,ctypes.c_wchar_p,ctypes.c_uint32,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p]
         window=user.CreateWindowExW(0,'STATIC','Diktator Tastentest',0x10cf0000,100,100,400,150,None,None,None,None)
         assert window
-        user.SetForegroundWindow(ctypes.c_void_p(window))
-        wait(lambda:user.GetForegroundWindow()==window,10,'Cannot focus keyboard test window')
+        # Windows can deny SetForegroundWindow to a process which did not
+        # receive the last input. Join the foreground input queue temporarily;
+        # never disable the production hook's foreground-window check.
+        from ctypes import wintypes
+        user.GetWindowThreadProcessId.argtypes=[ctypes.c_void_p,ctypes.POINTER(wintypes.DWORD)]
+        user.GetWindowThreadProcessId.restype=wintypes.DWORD
+        user.SetForegroundWindow.argtypes=[ctypes.c_void_p]
+        user.SetActiveWindow.argtypes=[ctypes.c_void_p]
+        user.SetFocus.argtypes=[ctypes.c_void_p]
+        user.ShowWindow.argtypes=[ctypes.c_void_p,ctypes.c_int]
+        user.BringWindowToTop.argtypes=[ctypes.c_void_p]
+        user.PeekMessageW.argtypes=[ctypes.POINTER(wintypes.MSG),ctypes.c_void_p,ctypes.c_uint,ctypes.c_uint,ctypes.c_uint]
+        user.TranslateMessage.argtypes=[ctypes.POINTER(wintypes.MSG)]
+        user.DispatchMessageW.argtypes=[ctypes.POINTER(wintypes.MSG)]
+        user.DispatchMessageW.restype=ctypes.c_ssize_t
+        focus_attempts=[]
+        def focus_test_window():
+            message=wintypes.MSG()
+            while user.PeekMessageW(ctypes.byref(message),None,0,0,1):
+                user.TranslateMessage(ctypes.byref(message));user.DispatchMessageW(ctypes.byref(message))
+            foreground=user.GetForegroundWindow()
+            if foreground==window:return True
+            current=ctypes.windll.kernel32.GetCurrentThreadId()
+            previous=user.GetWindowThreadProcessId(foreground,None) if foreground else 0
+            attached=bool(previous and previous!=current and user.AttachThreadInput(current,previous,True))
+            try:
+                user.ShowWindow(window,5);user.BringWindowToTop(window)
+                accepted=bool(user.SetForegroundWindow(window))
+                user.SetActiveWindow(window);user.SetFocus(window)
+                focus_attempts.append({'foreground':foreground,'thread':previous,'attached':attached,'accepted':accepted})
+            finally:
+                if attached:user.AttachThreadInput(current,previous,False)
+            return user.GetForegroundWindow()==window
+        try:wait(focus_test_window,10,'Cannot focus keyboard test window')
+        finally:result['keyboardFocusAttempts']=focus_attempts[-3:]
         core.call('attachWindow',window)
         class KBD(ctypes.Structure):_fields_=[('vk',ctypes.c_ushort),('scan',ctypes.c_ushort),('flags',ctypes.c_uint32),('time',ctypes.c_uint32),('extra',ctypes.c_size_t)]
         class UNION(ctypes.Union):_fields_=[('ki',KBD),('padding',ctypes.c_byte*32)]
